@@ -1,0 +1,126 @@
+html.light .digit-reel-num,
+html.light .digit-reel-unit,
+html.light .digit-reel-gap {
+  background: none;
+  color: var(--foreground);
+  -webkit-text-fill-color: var(--foreground);
+}
+
+/* Explicit light theme (class-driven so Settings toggle works) */
+html.light {
+  color-scheme: light;
+  --background: #f5f6fb;
+  --foreground: #12131a;
+  --surface: #ffffff;
+  --surface-raised: #eef0f7;
+  --border: #cfd5e6;
+  --muted: #3f4658;
+  --subtle: #5b6478;
+  --action: #2f5de8;
+  --action-strong: #2f5de8;
+  --focus: #2f5de8;
+  --champagne: #8a6635;
+  --gradient-aurora: radial-gradient(120% 80% at 10% 0%, rgb(47 93 232 / 16%), transparent 55%),
+    radial-gradient(90% 70% at 95% 12%, rgb(212 180 131 / 18%), transparent 48%),
+    linear-gradient(180deg, #f8f9fd, #eef1f8);
+  --gradient-panel: linear-gradient(165deg, #ffffff, #f3f5fb 55%, #eaf0ff);
+  --gradient-share: linear-gradient(160deg, #ffffff 0%, #f7f5f0 42%, #eef1f8 100%);
+  --gradient-share-sheen: linear-gradient(125deg, rgb(47 93 232 / 10%) 0%, transparent 42%, rgb(138 102 53 / 12%) 100%);
+  --share-bg: var(--gradient-share);
+  --share-sheen: var(--gradient-share-sheen);
+  --share-brand: #8a6635;
+  --share-price: #3f4658;
+  --share-hours-from: #12131a;
+  --share-hours-mid: #2f5de8;
+  --share-hours-to: #8a6635;
+  --share-meta: #5b6478;
+  --share-tagline: #12131a;
+  --share-cta: #2f5de8;
+  --share-border: color-mix(in srgb, #8a6635 22%, #cfd5e6);
+  --share-shadow: 0 18px 48px rgb(30 41 59 / 12%), inset 0 1px 0 rgb(255 255 255 / 70%);
+  --share-grain-opacity: 0.1;
+  --share-rule: linear-gradient(90deg, #8a6635, rgb(138 102 53 / 12%));
+  --card: #ffffff;
+  --card-foreground: #12131a;
+  --popover: #ffffff;
+  --popover-foreground: #12131a;
+  --primary: #2f5de8;
+  --primary-foreground: #ffffff;
+  --secondary: #eef0f7;
+  --secondary-foreground: #12131a;
+  --muted-foreground: #5b6478;
+  --accent: #e8eefc;
+  --accent-foreground: #12131a;
+  --input: #cfd5e6;
+  --ring: #2f5de8;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #12131a;
+  --sidebar-border: #cfd5e6;
+}
+
+html.light .brand-wordmark {
+  background: linear-gradient(120deg, #12131a 10%, var(--action) 55%, var(--champagne) 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+html.light .result-hours {
+  background: linear-gradient(180deg, #12131a 10%, #2f5de8 140%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+html.light .choice-chip-active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #1c1f2b, #2a3148);
+}
+
+html.light .onboarding-panel,
+html.light .decision-sheet,
+html.light .surface-card,
+html.light .result-card {
+  box-shadow: 0 18px 48px rgb(30 41 59 / 10%);
+  border-color: var(--border);
+}
+
+html.light .cash-stepper,
+html.light .cash-amount-field,
+html.light .unit-compact-input,
+html.light .select-field,
+html.light .history-controls,
+html.light .history-filter-card,
+html.light .settings-section,
+html.light .settings-accordion,
+html.light .settings-link-list,
+html.light .segmented,
+html.light .money-field,
+html.light .text-field,
+html.light .settings-list,
+html.light .inline-field,
+html.light .chip,
+html.light .choice-chip,
+html.light .share-accordion-trigger,
+html.light .secondary-action,
+html.light .compact-select-trigger {
+  border-color: var(--border);
+}
+
+html.light .tab-bar {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 72%) 0%, rgb(255 255 255 / 38%) 100%),
+    color-mix(in srgb, var(--surface) 55%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 70%, var(--border));
+  box-shadow:
+    0 10px 32px rgb(30 41 59 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 80%);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+}
+
+html.light .tab-item:hover {
+  background: color-mix(in srgb, var(--action) 8%, transparent);
+}
+
+html.light .tab-item-active {
+  background: color-mix(in srgb, var(--action) 12%, transparent);
+}

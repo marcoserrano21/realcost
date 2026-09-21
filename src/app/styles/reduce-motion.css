@@ -1,0 +1,87 @@
+html[data-reduce-motion="true"] .weekly-streak-bar {
+  transition: none;
+}
+
+/* User / system reduce-motion (driven by data-reduce-motion on <html>) */
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+}
+
+html[data-reduce-motion="true"] .pressable:active:not(:disabled) {
+  transform: none;
+}
+
+html[data-reduce-motion="true"] .home-reveal-stack.is-decided .home-reveal-item[data-collapse="secondary"] {
+  opacity: 0 !important;
+  max-height: 0 !important;
+  pointer-events: none !important;
+}
+
+html[data-reduce-motion="true"] .page-enter,
+html[data-reduce-motion="true"] .home-reveal-item,
+html[data-reduce-motion="true"] .feed-item,
+html[data-reduce-motion="true"] .history-item,
+html[data-reduce-motion="true"] .result-card,
+html[data-reduce-motion="true"] .result-card-enter,
+html[data-reduce-motion="true"] .result-hours-tick,
+html[data-reduce-motion="true"] .result-metric-tick,
+html[data-reduce-motion="true"] .hours-odometer-value,
+html[data-reduce-motion="true"] .hours-odometer-digit,
+html[data-reduce-motion="true"] .home-results-slot.is-open,
+html[data-reduce-motion="true"] .home-reveal-stack.is-leaving,
+html[data-reduce-motion="true"] .home-stage,
+html[data-reduce-motion="true"] .share-motion,
+html[data-reduce-motion="true"] .share-motion-enter,
+html[data-reduce-motion="true"] .onboarding-step-motion {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  animation: none !important;
+  transition: none !important;
+  pointer-events: auto !important;
+}
+
+html[data-reduce-motion="true"] .home-results-slot:not(.is-open) {
+  grid-template-rows: 0fr !important;
+  margin-top: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+html[data-reduce-motion="true"] .home-results-slot.is-open {
+  grid-template-rows: 1fr !important;
+  margin-top: 1.5rem !important;
+}
+
+html[data-reduce-motion="true"] .share-accordion-panel,
+html[data-reduce-motion="true"] .share-accordion-chevron,
+html[data-reduce-motion="true"] .history-filter-panel,
+html[data-reduce-motion="true"] .history-edit-panel,
+html[data-reduce-motion="true"] .settings-accordion-panel,
+html[data-reduce-motion="true"] .settings-chevron {
+  transition: none !important;
+}
+
+html[data-reduce-motion="true"] .history-filter-panel.is-open,
+html[data-reduce-motion="true"] .history-edit-panel.is-open,
+html[data-reduce-motion="true"] .settings-accordion-panel.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+html[data-reduce-motion="true"] .edit-stagger,
+html[data-reduce-motion="true"] .history-edit-panel.is-open .edit-stagger {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  transition-delay: 0ms !important;
+}
+
+html[data-reduce-motion="true"] .settings-save-float {
+  transition: none !important;
+}

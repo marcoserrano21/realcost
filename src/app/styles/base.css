@@ -1,0 +1,39 @@
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  body {
+    background: var(--gradient-aurora);
+    background-attachment: fixed;
+    color: var(--foreground);
+    font-feature-settings: "ss01" on, "cv11" on;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  input,
+  textarea,
+  select {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
