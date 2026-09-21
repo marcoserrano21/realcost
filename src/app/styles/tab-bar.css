@@ -2,7 +2,9 @@
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(10px + env(safe-area-inset-bottom));
+  /* Extra lift + iOS home indicator (needs viewport-fit=cover) */
+  bottom: calc(16px + constant(safe-area-inset-bottom, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 40;
   display: flex;
   justify-content: space-around;

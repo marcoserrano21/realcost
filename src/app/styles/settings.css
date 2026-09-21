@@ -214,7 +214,7 @@
 .settings-save-float {
   position: fixed;
   left: 50%;
-  bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   z-index: 45;
   width: min(calc(100% - 2rem), 24rem);
   transform: translate3d(-50%, 14px, 0);
