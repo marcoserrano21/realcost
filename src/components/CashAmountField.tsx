@@ -15,6 +15,7 @@ import {
   sanitizeIntegerInput,
 } from "@/lib/numericInput";
 import { MAX_PRICE } from "@/lib/limits";
+import { triggerHaptic } from "@/lib/haptics";
 
 const HOLD_DELAY_MS = 380;
 const HOLD_INTERVAL_START_MS = 120;
@@ -66,6 +67,7 @@ export default function CashAmountField({
   const suppressClickRef = useRef(false);
 
   const displayValue = formatGroupedInput(value, allowDecimal);
+  const growChars = Math.max(1, (displayValue || "0").length);
 
   useLayoutEffect(() => {
     const el = inputRef.current;
@@ -82,8 +84,10 @@ export default function CashAmountField({
     const next = Math.max(min, Math.round((safe + delta) * 100) / 100);
     const capped = Math.min(MAX_PRICE, next);
     const nextStr = capped === 0 ? "" : String(Math.round(capped));
+    const changed = nextStr !== valueRef.current;
     valueRef.current = nextStr;
     onChange(nextStr);
+    if (changed) triggerHaptic(8);
     return capped;
   };
 
@@ -178,7 +182,12 @@ export default function CashAmountField({
   };
 
   return (
-    <div className="cash-amount" role="group" aria-label={ariaLabel}>
+    <div
+      className="cash-amount"
+      role="group"
+      aria-label={ariaLabel}
+      style={{ ["--cash-chars" as string]: String(growChars) }}
+    >
       <button
         type="button"
         className="cash-stepper pressable"
@@ -197,7 +206,7 @@ export default function CashAmountField({
       </button>
 
       <div className="cash-amount-field">
-        {prefix ? <span aria-hidden="true">{prefix}</span> : null}
+        {prefix ? <span className="cash-amount-prefix" aria-hidden="true">{prefix}</span> : null}
         <input
           ref={inputRef}
           autoFocus={autoFocus}
@@ -206,6 +215,7 @@ export default function CashAmountField({
           placeholder="0"
           aria-label={ariaLabel}
           value={displayValue}
+          size={growChars}
           onChange={onInput}
           onKeyDown={(e) => {
             if (e.key.length === 1 && !/[0-9.]/.test(e.key) && !(allowDecimal && e.key === ".")) {
@@ -214,7 +224,7 @@ export default function CashAmountField({
             if (!allowDecimal && e.key === ".") e.preventDefault();
           }}
         />
-        {suffix ? <span aria-hidden="true">{suffix}</span> : null}
+        {suffix ? <span className="cash-amount-suffix" aria-hidden="true">{suffix}</span> : null}
       </div>
 
       <button

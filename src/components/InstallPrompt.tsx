@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import {
   decisionCount,
+  getA2HSPeak,
   hasDismissedA2HS,
   markA2HSDismissed,
 } from "@/lib/storage";
+import { shouldShowA2HS } from "@/lib/a2hsGate";
 import { track } from "@/lib/analytics";
 
 type BeforeInstallPromptEvent = Event & {
@@ -13,34 +15,54 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-/** Soft install nudge after 3 decisions (PWA / Add to Home Screen). */
+function isStandaloneDisplay(): boolean {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    // @ts-expect-error iOS Safari
+    window.navigator.standalone === true
+  );
+}
+
+/** Soft install nudge after share / hours kept peak (legacy: 3 decisions). */
 export default function InstallPrompt() {
   const [visible, setVisible] = useState(false);
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [iosHint, setIosHint] = useState(false);
 
   useEffect(() => {
-    if (hasDismissedA2HS()) return;
-    if (decisionCount() < 3) return;
+    const evaluate = () => {
+      if (
+        !shouldShowA2HS({
+          dismissed: hasDismissedA2HS(),
+          standalone: isStandaloneDisplay(),
+          peak: getA2HSPeak(),
+          decisions: decisionCount(),
+        })
+      ) {
+        return;
+      }
 
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      // @ts-expect-error iOS Safari
-      window.navigator.standalone === true;
-    if (isStandalone) return;
+      const ua = window.navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+      setIosHint(isIOS);
+      setVisible((was) => {
+        if (!was) track("a2hs_prompt_shown", { ios: isIOS, peak: getA2HSPeak() ?? "legacy" });
+        return true;
+      });
+    };
 
-    const ua = window.navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua);
-    setIosHint(isIOS);
-    setVisible(true);
-    track("a2hs_prompt_shown", { ios: isIOS });
+    evaluate();
+    window.addEventListener("realcost:a2hs-peak", evaluate);
 
     const onBip = (event: Event) => {
       event.preventDefault();
       setDeferred(event as BeforeInstallPromptEvent);
     };
     window.addEventListener("beforeinstallprompt", onBip);
-    return () => window.removeEventListener("beforeinstallprompt", onBip);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBip);
+      window.removeEventListener("realcost:a2hs-peak", evaluate);
+    };
   }, []);
 
   if (!visible) return null;
@@ -63,7 +85,6 @@ export default function InstallPrompt() {
       }
       return;
     }
-    // iOS / browsers without BIP: keep sheet open with instructions
   };
 
   return (

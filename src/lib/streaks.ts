@@ -1,5 +1,9 @@
 import { getLog } from "./storage";
 import { dayIndexMonBased, startOfWeek, WEEK_MS } from "./week";
+import { sumHoursKeptFromEntries, type HoursKeptTotals } from "./hoursKept";
+
+export type { HoursKeptTotals };
+export { sumHoursKeptFromEntries } from "./hoursKept";
 
 export type PausedStreak = {
   /** Consecutive calendar weeks (Mon–Sun) with at least one skip, ending this week. */
@@ -91,4 +95,8 @@ export function getPausedStreak(now = Date.now()): PausedStreak {
     bestWeekHours,
     longestStreak,
   };
+}
+
+export function getHoursKeptTotals(now = Date.now()): HoursKeptTotals {
+  return sumHoursKeptFromEntries(getLog(), now);
 }

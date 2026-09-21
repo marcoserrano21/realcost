@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { computeRealCost, formatHours, formatMoney } from "../lib/calc.ts";
+import { computeRealCost, formatHours, formatLifeSpan, formatMoney } from "../lib/calc.ts";
 import { decodeComparison, encodeComparison, shareText } from "../lib/sharing.ts";
 
 test("computeRealCost: basic hours", () => {
@@ -143,6 +143,22 @@ test("caretIndexForDigitCount skips commas", () => {
 test("formatHours compact for extreme values", () => {
   assert.equal(formatHours(12_500), "12.5k h");
   assert.match(formatHours(2_500_000), /M h/);
+});
+
+test("formatLifeSpan stays quiet under a day", () => {
+  assert.equal(formatLifeSpan(0), null);
+  assert.equal(formatLifeSpan(12), null);
+  assert.equal(formatLifeSpan(23.9), null);
+});
+
+test("formatLifeSpan days weeks months years", () => {
+  assert.equal(formatLifeSpan(24), "≈ 1 day");
+  assert.equal(formatLifeSpan(36), "≈ 1.5 days");
+  assert.equal(formatLifeSpan(24 * 7), "≈ 1 week");
+  assert.equal(formatLifeSpan(24 * 14), "≈ 2 weeks");
+  assert.equal(formatLifeSpan(24 * 30), "≈ 1 month");
+  assert.equal(formatLifeSpan(24 * 365), "≈ 1 year");
+  assert.equal(formatLifeSpan(24 * 365 * 2.4), "≈ 2.4 years");
 });
 
 test("formatMoney compact for millions", () => {

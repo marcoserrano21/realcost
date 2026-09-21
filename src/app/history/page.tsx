@@ -3,19 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Units } from "@/lib/calc";
-import { formatHours, formatMoney } from "@/lib/calc";
+import { formatHours, formatLifeSpan, formatMoney } from "@/lib/calc";
 import {
   getLog,
   getPersonalization,
   getUnits,
   updateLogChoice,
+  updateLogCategory,
   deleteLogEntry,
-  addComparisonEntry,
   DEFAULT_PERSONALIZATION,
 } from "@/lib/storage";
 import type { Choice, LogEntry, PurchaseCategory } from "@/lib/storage";
 import { getHistoryEmptyCopy } from "@/lib/copy";
-import { CHOICE_ICONS, TrashIcon, ShareIcon } from "@/components/icons";
+import { CHOICE_ICONS, TrashIcon, TagIcon } from "@/components/icons";
 import { PURCHASE_CATEGORY_OPTIONS } from "@/lib/personalizationOptions";
 import PageEnter from "@/components/PageEnter";
 import ScreenHeader from "@/components/ScreenHeader";
@@ -26,10 +26,7 @@ import CompactSelect from "@/components/CompactSelect";
 import BounceLoader from "@/components/BounceLoader";
 import { track } from "@/lib/analytics";
 import { sumHistory } from "@/lib/historyTotals";
-import { getCategoryHeat } from "@/lib/categoryHeat";
-import { encodeComparison, newShareId, shareText } from "@/lib/sharing";
-import { getSharePrivacy } from "@/lib/sharePrivacy";
-import { shareLink } from "@/lib/nativeShare";
+import { getCategoryHeat, type CategoryHeatMetric } from "@/lib/categoryHeat";
 
 const DECISION_FILTERS: { value: Choice | "all"; label: string }[] = [
   { value: "all", label: "All" },
@@ -114,14 +111,17 @@ export default function HistoryPage() {
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [page, setPage] = useState(0);
   const [tone, setTone] = useState(DEFAULT_PERSONALIZATION.tone);
-  const [heat, setHeat] = useState(getCategoryHeat());
+  const [heatMetric, setHeatMetric] = useState<CategoryHeatMetric>("kept");
+  const [heat, setHeat] = useState(() => getCategoryHeat("kept"));
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [categoryPanelId, setCategoryPanelId] = useState<string | null>(null);
+  const [customCategory, setCustomCategory] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<LogEntry | null>(null);
 
   const refresh = () => {
     setLog(getLog());
-    setHeat(getCategoryHeat());
+    setHeat(getCategoryHeat(heatMetric));
   };
 
   useEffect(() => {
@@ -129,6 +129,10 @@ export default function HistoryPage() {
     refresh();
     setTone((getPersonalization() ?? DEFAULT_PERSONALIZATION).tone);
   }, []);
+
+  useEffect(() => {
+    setHeat(getCategoryHeat(heatMetric));
+  }, [heatMetric]);
 
   useEffect(() => {
     setPage(0);
@@ -159,6 +163,51 @@ export default function HistoryPage() {
     updateLogChoice(id, choice);
     track("decision_updated", { choice });
     setEditingId(null);
+    setCategoryPanelId(null);
+    refresh();
+  };
+
+  const openCategoryPanel = (entry: LogEntry) => {
+    if (categoryPanelId === entry.id) {
+      setCategoryPanelId(null);
+      return;
+    }
+    setCategoryPanelId(entry.id);
+    setCustomCategory(entry.category === "others" ? entry.categoryLabel ?? "" : "");
+  };
+
+  const handleUpdateCategory = (
+    id: string,
+    category: PurchaseCategory | null,
+    labelOverride?: string
+  ) => {
+    if (category === null) {
+      updateLogCategory(id, null);
+      track("category_selected", { category: "cleared", source: "history" });
+      setCategoryPanelId(null);
+      setCustomCategory("");
+      refresh();
+      return;
+    }
+    if (category === "others") {
+      const label = (labelOverride ?? customCategory).trim() || "Others";
+      updateLogCategory(id, "others", label);
+      track("category_selected", { category: "others", source: "history" });
+      refresh();
+      return;
+    }
+    const label = PURCHASE_CATEGORY_OPTIONS.find((o) => o.value === category)?.label;
+    updateLogCategory(id, category, label);
+    track("category_selected", { category, source: "history" });
+    setCategoryPanelId(null);
+    setCustomCategory("");
+    refresh();
+  };
+
+  const handleSaveCustomCategory = (id: string) => {
+    updateLogCategory(id, "others", customCategory.trim() || "Others");
+    track("category_selected", { category: "others", source: "history" });
+    setCategoryPanelId(null);
     refresh();
   };
 
@@ -168,36 +217,8 @@ export default function HistoryPage() {
     track("decision_deleted", { choice: pendingDelete.choice });
     setPendingDelete(null);
     setEditingId(null);
+    setCategoryPanelId(null);
     refresh();
-  };
-
-  const handleReshare = async (entry: LogEntry) => {
-    const privacy = getSharePrivacy();
-    const shareId = newShareId();
-    track("share_started", { source: "history", privacy });
-    const shareUrl = encodeComparison(
-      window.location.origin,
-      { price: entry.price, hours: entry.hours },
-      { privacy, shareId }
-    );
-    addComparisonEntry({
-      price: entry.price,
-      hours: entry.hours,
-      role: "sent",
-      shareId,
-      timestamp: Date.now(),
-    });
-    const text = shareText(formatMoney(entry.price), {
-      hoursLabel: formatHours(entry.hours),
-      privacy,
-    });
-    const result = await shareLink({
-      title: "What does this actually cost you?",
-      text,
-      url: shareUrl,
-    });
-    if (result === "shared") track("share_completed", { method: "native", source: "history", privacy });
-    if (result === "copied") track("share_completed", { method: "clipboard", source: "history", privacy });
   };
 
   if (units === undefined) {
@@ -231,13 +252,17 @@ export default function HistoryPage() {
             <span className="history-session-label">Session total</span>
             <strong className="tabular-nums">{formatMoney(sessionTotal.price)}</strong>
             <span className="text-xs text-[var(--subtle)] tabular-nums">
-              {formatHours(sessionTotal.hours)} · {sessionTotal.count} decision
-              {sessionTotal.count === 1 ? "" : "s"}
+              {(() => {
+                const gloss = formatLifeSpan(sessionTotal.hours);
+                return `${formatHours(sessionTotal.hours)}${gloss ? ` · ${gloss}` : ""} · ${sessionTotal.count} decision${
+                  sessionTotal.count === 1 ? "" : "s"
+                }`;
+              })()}
             </span>
           </div>
         ) : null}
 
-        <CategoryHeatMap rows={heat} />
+        <CategoryHeatMap rows={heat} metric={heatMetric} onMetricChange={setHeatMetric} />
 
         <div className={`history-filter-card${filtersOpen ? " is-open" : ""}`}>
           <button
@@ -338,7 +363,16 @@ export default function HistoryPage() {
                 <TappableExpandCard
                   key={entry.id}
                   open={isEditing}
-                  onToggle={() => setEditingId(isEditing ? null : entry.id)}
+                  onToggle={() => {
+                    if (isEditing) {
+                      setEditingId(null);
+                      setCategoryPanelId(null);
+                      return;
+                    }
+                    setEditingId(entry.id);
+                    setCategoryPanelId(null);
+                    setCustomCategory(entry.category === "others" ? entry.categoryLabel ?? "" : "");
+                  }}
                   ariaLabel={`${formatMoney(entry.price)}, ${choiceLabel(entry.choice)}. Tap to change decision.`}
                   className="history-item history-item-tappable"
                   style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
@@ -381,15 +415,88 @@ export default function HistoryPage() {
                             </button>
                           ))}
                         </div>
-                        <div className="history-row-actions edit-stagger" style={{ ["--stagger-i" as string]: EDIT_CHOICES.length }}>
+
+                        {categoryPanelId === entry.id ? (
+                          <div
+                            className="history-category-panel edit-stagger"
+                            style={{ ["--stagger-i" as string]: EDIT_CHOICES.length }}
+                          >
+                            <span className="field-label" id={`history-cat-${entry.id}`}>
+                              Category
+                            </span>
+                            <div
+                              className="chip-grid chip-grid-compact"
+                              role="group"
+                              aria-labelledby={`history-cat-${entry.id}`}
+                            >
+                              {PURCHASE_CATEGORY_OPTIONS.map((option) => {
+                                const selected = entry.category === option.value;
+                                return (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    className={`chip chip-compact pressable${selected ? " chip-selected" : ""}`}
+                                    aria-pressed={selected}
+                                    onClick={() => {
+                                      if (selected) {
+                                        handleUpdateCategory(entry.id, null);
+                                        return;
+                                      }
+                                      if (option.value === "others") {
+                                        const nextLabel = entry.categoryLabel ?? "";
+                                        setCustomCategory(nextLabel);
+                                        handleUpdateCategory(entry.id, "others", nextLabel || "Others");
+                                        return;
+                                      }
+                                      handleUpdateCategory(entry.id, option.value);
+                                    }}
+                                  >
+                                    {option.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {entry.category === "others" ? (
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  className="text-field text-field-compact"
+                                  placeholder="Describe it"
+                                  value={customCategory}
+                                  onChange={(e) => setCustomCategory(e.target.value)}
+                                  aria-label="Custom category"
+                                  maxLength={48}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <button
+                                  type="button"
+                                  className="secondary-action pressable"
+                                  onClick={() => handleSaveCustomCategory(entry.id)}
+                                >
+                                  Save category
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+
+                        <div
+                          className="history-row-actions edit-stagger"
+                          style={{
+                            ["--stagger-i" as string]:
+                              categoryPanelId === entry.id ? EDIT_CHOICES.length + 1 : EDIT_CHOICES.length,
+                          }}
+                        >
                           <button
                             type="button"
-                            className="history-reshare-icon pressable"
-                            aria-label="Send this price"
-                            title="Send"
-                            onClick={() => void handleReshare(entry)}
+                            className={`history-recategorize-icon pressable${
+                              categoryPanelId === entry.id ? " is-active" : ""
+                            }`}
+                            aria-label="Change category"
+                            aria-pressed={categoryPanelId === entry.id}
+                            title="Category"
+                            onClick={() => openCategoryPanel(entry)}
                           >
-                            <ShareIcon />
+                            <TagIcon />
                           </button>
                           <button
                             type="button"

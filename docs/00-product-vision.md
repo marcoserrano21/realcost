@@ -108,7 +108,7 @@ Do not build these until the share loop shows real behavior:
 - Bank links or transaction import
 - AI financial advisor
 - Social feed, profiles, likes, or public rankings
-- Full budgeting suite / Hours Budget UI (planned in doc 14 only)
+- Full budgeting suite / Hours Budget UI (planned in doc 14 only; gated until share→recipient metrics — thrive spec 2026-09-20)
 - Monetization layers
 - Backend auth or cloud sync
 - Service worker offline shell

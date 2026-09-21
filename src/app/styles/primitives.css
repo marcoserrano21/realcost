@@ -128,6 +128,20 @@
   color: transparent;
 }
 
+.life-span-gloss {
+  margin: 0.2rem 0 0;
+  color: var(--subtle);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.result-life-span {
+  margin-top: 0.15rem;
+}
+
 .share-accordion {
   display: flex;
   flex-direction: column;

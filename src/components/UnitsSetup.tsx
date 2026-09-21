@@ -10,17 +10,9 @@ import type { SpendingFocus, Tone } from "@/lib/storage";
 import PersonalizationFields from "@/components/PersonalizationFields";
 import OnboardingCostPreview from "@/components/OnboardingCostPreview";
 import { track } from "@/lib/analytics";
+import { triggerHaptic } from "@/lib/haptics";
 
 const TOTAL_STEPS = 3;
-
-function triggerHaptic(pattern: number | number[] = 8) {
-  if (typeof navigator === "undefined" || !("vibrate" in navigator)) return;
-  try {
-    navigator.vibrate(pattern);
-  } catch {
-    // ignore
-  }
-}
 
 export default function UnitsSetup({
   onDone,

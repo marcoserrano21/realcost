@@ -106,32 +106,51 @@
 
 /* Compact Apple Cash-style amount control */
 .cash-amount {
-  display: flex;
+  --cash-chars: 1;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  width: min(100%, 280px);
+  gap: 12px;
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
 }
 
 .cash-amount-field {
-  flex: 1;
-  min-width: 0;
-  display: flex;
+  flex: 0 0 auto;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   min-height: 52px;
-  padding: 12px 16px;
+  min-width: 4.75rem;
+  width: calc(1.1em + (var(--cash-chars) * 1ch) + 1.85rem);
+  max-width: min(100%, 16.5rem);
+  padding: 12px 14px;
   color: var(--muted);
   font-size: 1.35rem;
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: 16px;
+  transition:
+    width 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    min-width 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cash-amount-prefix,
+.cash-amount-suffix {
+  flex-shrink: 0;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .cash-amount-field input {
-  width: 100%;
-  min-width: 0;
+  flex: 0 0 auto;
+  width: calc(var(--cash-chars) * 1ch);
+  min-width: 1ch;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
   text-align: center;
   color: var(--foreground);
   background: transparent;
@@ -139,10 +158,17 @@
   outline: 0;
   font-size: 1.35rem;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  transition: width 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .cash-amount-field input::placeholder {
   color: var(--subtle);
+}
+
+html[data-reduce-motion="true"] .cash-amount-field,
+html[data-reduce-motion="true"] .cash-amount-field input {
+  transition: none;
 }
 
 .home-reveal-item {
@@ -192,6 +218,12 @@
   padding-inline: 18px;
 }
 
+/* Breathing room between decision chips and ShareCard */
+.home-reveal-stack > .home-reveal-item[data-collapse="chips"] + .home-reveal-item {
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+}
+
 .choice-chip {
   flex: 1;
   min-height: 48px;
@@ -203,14 +235,13 @@
   border-radius: 14px;
 }
 
-.choice-chip:hover {
-  border-color: var(--muted);
+.choice-chip:hover:not(:disabled) {
+  color: var(--foreground);
 }
 
 .choice-chip-active {
   color: #0a0a10;
   background: linear-gradient(135deg, #e8e8f0, #f5f5f8);
-  border-color: transparent;
 }
 
 .choice-chip:disabled {
@@ -219,4 +250,54 @@
 
 .choice-chip-locked {
   opacity: 0.42;
+}
+
+/* Borders match History icons — bought mint, thinking cobalt, skipped champagne */
+.choice-chip-bought {
+  border-color: color-mix(in srgb, var(--success) 48%, var(--border));
+}
+
+.choice-chip-bought:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--success) 78%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--success) 16%, transparent);
+}
+
+.choice-chip-bought.choice-chip-active {
+  border-color: var(--success);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--success) 28%, transparent);
+}
+
+.choice-chip-thinking {
+  border-color: color-mix(in srgb, var(--action) 48%, var(--border));
+}
+
+.choice-chip-thinking:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--action) 78%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--action) 16%, transparent);
+}
+
+.choice-chip-thinking.choice-chip-active {
+  border-color: var(--action);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--action) 28%, transparent);
+}
+
+.choice-chip-skipped {
+  border-color: color-mix(in srgb, var(--champagne) 48%, var(--border));
+}
+
+.choice-chip-skipped:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--champagne) 78%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--champagne) 16%, transparent);
+  color: var(--champagne);
+}
+
+.choice-chip-skipped.choice-chip-active {
+  border-color: var(--champagne);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--champagne) 28%, transparent);
+}
+
+.choice-chip-emphasize {
+  border-color: color-mix(in srgb, var(--champagne) 65%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--champagne) 22%, transparent);
+  color: var(--champagne);
 }

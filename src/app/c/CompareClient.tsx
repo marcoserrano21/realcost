@@ -18,7 +18,9 @@ import { decodeComparison, encodeComparison, shareText } from "@/lib/sharing";
 import { getSharePrivacy } from "@/lib/sharePrivacy";
 import { track } from "@/lib/analytics";
 import { sanitizeDecimalInput } from "@/lib/numericInput";
-import ResultCard from "@/components/ResultCard";
+import { triggerHaptic } from "@/lib/haptics";
+import HoursOdometer from "@/components/HoursOdometer";
+import LifeSpanGloss from "@/components/LifeSpanGloss";
 import ShareCard from "@/components/ShareCard";
 import PageEnter from "@/components/PageEnter";
 
@@ -37,6 +39,7 @@ export default function CompareClient() {
   const [reacted, setReacted] = useState(false);
   const [reactionBanner, setReactionBanner] = useState<string | null>(null);
   const [tone, setTone] = useState(DEFAULT_PERSONALIZATION.tone);
+  const [showCard, setShowCard] = useState(false);
 
   useEffect(() => {
     setTone((getPersonalization() ?? DEFAULT_PERSONALIZATION).tone);
@@ -95,6 +98,7 @@ export default function CompareClient() {
       timestamp: Date.now(),
     });
     track("recipient_calculation_completed", { has_peer_hours: hasPeerHours });
+    triggerHaptic([8, 30, 12]);
     setRevealed(true);
   };
 
@@ -114,6 +118,7 @@ export default function CompareClient() {
       try {
         await navigator.share({ title: "I saw your RealCost", text, url: shareUrl });
         setReacted(true);
+        triggerHaptic([10, 40, 14]);
         return;
       } catch {
         // fall through
@@ -122,6 +127,7 @@ export default function CompareClient() {
     await navigator.clipboard.writeText(shareUrl);
     setReacted(true);
     setCopied(true);
+    triggerHaptic([10, 40, 14]);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -142,11 +148,12 @@ export default function CompareClient() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "What does this actually cost you?",
+          title: "Same price. What does it cost you?",
           text,
           url: shareUrl,
         });
         track("recipient_shared", { method: "native", privacy });
+        triggerHaptic([10, 40, 14]);
         return;
       } catch {
         // fall through
@@ -155,6 +162,7 @@ export default function CompareClient() {
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     track("recipient_shared", { method: "clipboard", privacy });
+    triggerHaptic([10, 40, 14]);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -187,103 +195,110 @@ export default function CompareClient() {
 
   return (
     <main className="screen-shell screen-shell-center gap-6">
-      <PageEnter className="w-full max-w-sm flex flex-col items-center gap-6">
-        <div className="flex flex-col items-center gap-1 text-center max-w-sm">
-          <span className="text-xs uppercase tracking-widest text-[var(--champagne)]">
-            same price, different life
-          </span>
-          <p className="text-[var(--foreground)] text-lg mt-2">
+      <PageEnter className="w-full max-w-sm flex flex-col items-center gap-6 compare-ritual">
+        <div className="flex flex-col items-center gap-2 text-center max-w-sm">
+          <p className="compare-ritual-price tabular-nums">{formatMoney(price)}</p>
+          <p className="text-[var(--muted)] text-sm">
             {hasPeerHours ? (
               <>
-                Someone says this cost them{" "}
-                <span className="font-medium tabular-nums">{formatHours(theirHours)}</span> of work.
+                A friend said <span className="tabular-nums font-medium">{formatHours(theirHours)}</span>. What does it cost you?
               </>
             ) : (
-              <>
-                Someone shared {formatMoney(price)}. What does it cost{" "}
-                <span className="font-medium">you</span>?
-              </>
+              <>What does this cost in hours of your life?</>
             )}
           </p>
-          <p className="text-[var(--muted)] text-sm">{getCompareIntroCopy(tone)}</p>
+          {!revealed ? <p className="text-[var(--subtle)] text-xs">{getCompareIntroCopy(tone)}</p> : null}
         </div>
 
         {!revealed ? (
-          <div className="flex flex-col gap-4 w-full max-w-sm">
+          <div className="flex flex-col gap-3 w-full max-w-sm">
             <div className="money-field">
               <span aria-hidden="true">$</span>
               <input
                 autoFocus
                 inputMode="decimal"
-                placeholder="your hourly rate"
+                placeholder="hourly take-home"
                 aria-label="Your hourly take-home rate"
                 value={wage}
                 onChange={(e) => onWageChange(e.target.value)}
               />
               <span>/ hr</span>
             </div>
+            <p className="text-[var(--subtle)] text-xs text-center" style={{ margin: 0 }}>
+              Wage stays on this device. Never in the link.
+            </p>
             <button type="button" disabled={!canReveal} onClick={handleReveal} className="primary-action pressable w-full">
-              Show me
+              See my hours
             </button>
           </div>
         ) : (
           myResult && (
             <>
-              <ResultCard
-                price={price}
-                result={myResult}
-                label={myName || undefined}
-                compareLabel={hasPeerHours ? "Them" : undefined}
-                compareHours={hasPeerHours ? theirHours : undefined}
-                animateEnter
-              />
-              <p className="text-[var(--muted)] text-sm text-center max-w-xs">{getCompareRevealCopy(tone)}</p>
-
-              <div className="surface-card surface-card-compact w-full flex flex-col gap-2">
-                <p className="field-label" style={{ margin: 0 }}>
-                  Adjust your rate
-                </p>
-                <div className="money-field money-field-compact">
-                  <span aria-hidden="true">$</span>
-                  <input
-                    inputMode="decimal"
-                    aria-label="Edit your hourly take-home rate"
-                    value={wage}
-                    onChange={(e) => onWageChange(e.target.value)}
-                  />
-                  <span>/ hr</span>
-                </div>
-                <p className="settings-inline-note">
-                  Changing the rate updates your hours instantly. It stays on this device.
-                </p>
+              <div className="compare-ritual-reveal w-full flex flex-col items-center gap-3">
+                <HoursOdometer hours={myResult.hours} />
+                <LifeSpanGloss hours={myResult.hours} />
+                {hasPeerHours ? (
+                  <p className="text-[var(--muted)] text-sm text-center">
+                    Them: <span className="tabular-nums">{formatHours(theirHours)}</span>
+                  </p>
+                ) : null}
+                <p className="text-[var(--muted)] text-sm text-center max-w-xs">{getCompareRevealCopy(tone)}</p>
               </div>
-
-              <div className="share-motion share-motion-enter w-full">
-                <ShareCard
-                  price={price}
-                  hours={myResult.hours}
-                  label={myName || undefined}
-                  compareHours={hasPeerHours ? theirHours : undefined}
-                  compareLabel={hasPeerHours ? "Them" : undefined}
-                />
-              </div>
-
-              <input
-                placeholder="Your name (optional, stays on this device)"
-                value={myName}
-                onChange={(e) => setMyName(e.target.value)}
-                className="caption-field"
-              />
 
               {shareId ? (
-                <button type="button" onClick={() => void handleReact()} className="primary-action pressable w-full max-w-sm">
-                  {reacted ? (copied ? "Reaction link copied" : "Reaction sent") : "React: send your hours back"}
+                <button type="button" onClick={() => void handleReact()} className="primary-action pressable w-full">
+                  {reacted ? (copied ? "Reaction link copied" : "Reaction sent") : "React with my hours"}
+                </button>
+              ) : (
+                <button type="button" onClick={() => void handleShareMine()} className="primary-action pressable w-full">
+                  {copied ? "Link copied" : "Send this back"}
+                </button>
+              )}
+
+              {shareId ? (
+                <button type="button" onClick={() => void handleShareMine()} className="link-action">
+                  {copied && !reacted ? "Link copied" : "Or share a new challenge"}
                 </button>
               ) : null}
 
-              <button type="button" onClick={handleShareMine} className="secondary-action pressable w-full max-w-sm">
-                {copied && !reacted ? "Link copied" : "Ask what it costs them"}
+              <button type="button" className="link-action" onClick={() => setShowCard((v) => !v)}>
+                {showCard ? "Hide card" : "Save dual card"}
               </button>
+
+              {showCard ? (
+                <div className="share-motion share-motion-enter w-full">
+                  <ShareCard
+                    price={price}
+                    hours={myResult.hours}
+                    label={myName || undefined}
+                    compareHours={hasPeerHours ? theirHours : undefined}
+                    compareLabel={hasPeerHours ? "Them" : undefined}
+                  />
+                </div>
+              ) : null}
+
+              <details className="w-full text-sm text-[var(--muted)]">
+                <summary className="cursor-pointer">Adjust rate or name</summary>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="money-field money-field-compact">
+                    <span aria-hidden="true">$</span>
+                    <input
+                      inputMode="decimal"
+                      aria-label="Edit your hourly take-home rate"
+                      value={wage}
+                      onChange={(e) => onWageChange(e.target.value)}
+                    />
+                    <span>/ hr</span>
+                  </div>
+                  <input
+                    placeholder="Your name (optional, on-device)"
+                    value={myName}
+                    onChange={(e) => setMyName(e.target.value)}
+                    className="caption-field"
+                  />
+                </div>
+              </details>
+
               <Link href="/" className="link-action">
                 Try your own price
               </Link>

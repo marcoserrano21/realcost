@@ -8,6 +8,7 @@ const PERSONALIZATION_KEY = "realcost:personalization";
 const COMPARISON_LOG_KEY = "realcost:comparisons";
 const WELCOME_SEEN_KEY = "realcost:welcome_seen";
 const A2HS_DISMISSED_KEY = "realcost:a2hs_dismissed";
+const A2HS_PEAK_KEY = "realcost:a2hs_peak";
 
 export type SpendingFocus =
   | "shopping"
@@ -151,6 +152,41 @@ export function updateLogChoice(id: string, choice: Choice): LogEntry | null {
   const index = log.findIndex((entry) => entry.id === id);
   if (index < 0) return null;
   log[index] = { ...log[index], choice };
+  window.localStorage.setItem(LOG_KEY, JSON.stringify(log));
+  return log[index];
+}
+
+/** History may assign or clear a purchase category after the fact. */
+export function updateLogCategory(
+  id: string,
+  category: PurchaseCategory | null,
+  categoryLabel?: string
+): LogEntry | null {
+  if (typeof window === "undefined") return null;
+  const log = getLog();
+  const index = log.findIndex((entry) => entry.id === id);
+  if (index < 0) return null;
+  const current = log[index];
+  if (category === null) {
+    log[index] = {
+      id: current.id,
+      price: current.price,
+      hours: current.hours,
+      choice: current.choice,
+      timestamp: current.timestamp,
+    };
+  } else {
+    const next: LogEntry = {
+      ...current,
+      category,
+    };
+    if (categoryLabel?.trim()) {
+      next.categoryLabel = categoryLabel.trim();
+    } else {
+      delete next.categoryLabel;
+    }
+    log[index] = next;
+  }
   window.localStorage.setItem(LOG_KEY, JSON.stringify(log));
   return log[index];
 }
@@ -304,6 +340,25 @@ export function markA2HSDismissed() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(A2HS_DISMISSED_KEY, "1");
 }
+
+export type A2HSPeakReason = "share" | "skipped";
+
+export function markA2HSPeak(reason: A2HSPeakReason) {
+  if (typeof window === "undefined") return;
+  if (!window.localStorage.getItem(A2HS_PEAK_KEY)) {
+    window.localStorage.setItem(A2HS_PEAK_KEY, reason);
+  }
+  window.dispatchEvent(new Event("realcost:a2hs-peak"));
+}
+
+export function getA2HSPeak(): A2HSPeakReason | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.localStorage.getItem(A2HS_PEAK_KEY);
+  if (raw === "share" || raw === "skipped") return raw;
+  return null;
+}
+
+export { isMeaningfulHoursKept, shouldShowA2HS } from "./a2hsGate";
 
 export function decisionCount(): number {
   return getLog().length;

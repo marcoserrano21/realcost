@@ -107,6 +107,21 @@ export function ShareIcon({ className }: IconProps) {
   );
 }
 
+/** Tag / recategorize — stroke only, matches icon system. */
+export function TagIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M3.75 12.5V5.75A1.5 1.5 0 0 1 5.25 4.25h6.75c.4 0 .78.16 1.06.44l6.5 6.5a1.5 1.5 0 0 1 0 2.12l-5.75 5.75a1.5 1.5 0 0 1-2.12 0l-6.5-6.5a1.5 1.5 0 0 1-.44-1.06Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="8.25" cy="8.25" r="1.15" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function FlameIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">

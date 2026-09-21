@@ -2,19 +2,22 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import CompareClient from "./CompareClient";
 import BounceLoader from "@/components/BounceLoader";
+import { compareOgCopy } from "@/lib/compareOg";
+
+const og = compareOgCopy();
 
 export const metadata: Metadata = {
-  title: "Same Price. Different Life. | RealCost",
-  description: "See what the same price costs someone else, in hours of their life.",
+  title: og.title,
+  description: og.description,
   openGraph: {
-    title: "Same Price. Different Life. | RealCost",
-    description: "See what the same price costs someone else.",
+    title: og.title,
+    description: og.description,
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Same Price. Different Life. | RealCost",
-    description: "See what the same price costs someone else.",
+    title: og.title,
+    description: og.description,
   },
 };
 

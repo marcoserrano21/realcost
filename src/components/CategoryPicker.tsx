@@ -12,7 +12,7 @@ export default function CategoryPicker({
 }: {
   category: PurchaseCategory | null;
   customLabel: string;
-  onCategoryChange: (value: PurchaseCategory) => void;
+  onCategoryChange: (value: PurchaseCategory | null) => void;
   onCustomLabelChange: (value: string) => void;
 }) {
   const otherInputRef = useRef<HTMLInputElement>(null);
@@ -33,18 +33,28 @@ export default function CategoryPicker({
       <label className="field-label" id="category-label">
         What is this for?
       </label>
-      <div className="chip-grid" role="group" aria-labelledby="category-label">
-        {PURCHASE_CATEGORY_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={`chip pressable${category === option.value ? " chip-selected" : ""}`}
-            aria-pressed={category === option.value}
-            onClick={() => onCategoryChange(option.value)}
-          >
-            {option.label}
-          </button>
-        ))}
+      <div className="chip-grid chip-grid-compact" role="group" aria-labelledby="category-label">
+        {PURCHASE_CATEGORY_OPTIONS.map((option) => {
+          const selected = category === option.value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              className={`chip chip-compact pressable${selected ? " chip-selected" : ""}`}
+              aria-pressed={selected}
+              onClick={() => {
+                if (selected) {
+                  onCategoryChange(null);
+                  if (option.value === "others") onCustomLabelChange("");
+                  return;
+                }
+                onCategoryChange(option.value);
+              }}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
       {category === "others" && (
         <input

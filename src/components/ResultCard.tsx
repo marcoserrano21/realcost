@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { formatDinners, formatHours, formatMoney, formatShifts } from "@/lib/calc";
 import type { RealCostResult } from "@/lib/calc";
 import HoursOdometer from "@/components/HoursOdometer";
+import LifeSpanGloss from "@/components/LifeSpanGloss";
 
 export default function ResultCard({
   price,
@@ -43,11 +44,12 @@ export default function ResultCard({
       ) : null}
 
       <HoursOdometer hours={result.hours} className="result-hours mt-2" />
-      <span className="text-[var(--subtle)] text-sm mb-2">
+      <span className="text-[var(--subtle)] text-sm">
         {label ? `of ${label}'s work` : "of your work"}
       </span>
+      <LifeSpanGloss hours={result.hours} className="result-life-span" />
 
-      <div className="result-metrics flex gap-4 text-[var(--muted)] text-sm mt-1 flex-wrap justify-center">
+      <div className="result-metrics flex gap-4 text-[var(--muted)] text-sm mt-2 flex-wrap justify-center">
         <span>{formatShifts(result.shifts)}</span>
         <span className="text-[var(--border)]">·</span>
         <span>{formatDinners(result.dinners, dinnerName)}</span>

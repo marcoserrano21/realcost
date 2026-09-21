@@ -99,6 +99,51 @@ export function formatHours(hours: number): string {
   return `${h}h ${m}m`;
 }
 
+/** Hours must clear a full day before calendar gloss appears (hours stay primary). */
+export const LIFE_SPAN_MIN_HOURS = 24;
+
+function formatSpanAmount(value: number): string {
+  if (!Number.isFinite(value)) return "0";
+  if (value >= 10) return String(Math.round(value));
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function pluralUnit(amount: string, singular: string): string {
+  return amount === "1" ? singular : `${singular}s`;
+}
+
+/**
+ * Secondary calendar gloss for large hour totals.
+ * Returns null under 24h so small purchases stay hour-clean.
+ * Copy is muted UI caption — never replaces formatHours.
+ */
+export function formatLifeSpan(hours: number): string | null {
+  if (!Number.isFinite(hours) || hours < LIFE_SPAN_MIN_HOURS) return null;
+
+  const years = hours / (24 * 365);
+  if (years >= 1) {
+    const amount = formatSpanAmount(years);
+    return `≈ ${amount} ${pluralUnit(amount, "year")}`;
+  }
+
+  const months = hours / (24 * 30);
+  if (months >= 1) {
+    const amount = formatSpanAmount(months);
+    return `≈ ${amount} ${pluralUnit(amount, "month")}`;
+  }
+
+  const weeks = hours / (24 * 7);
+  if (weeks >= 1) {
+    const amount = formatSpanAmount(weeks);
+    return `≈ ${amount} ${pluralUnit(amount, "week")}`;
+  }
+
+  const days = hours / 24;
+  const amount = formatSpanAmount(days);
+  return `≈ ${amount} ${pluralUnit(amount, "day")}`;
+}
+
 export function formatShifts(shifts: number): string {
   if (!Number.isFinite(shifts) || shifts < 0) return "0 shifts";
   if (shifts >= 10_000) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, Fragment } from "react";
 import Link from "next/link";
-import { computeRealCost, formatHours, formatMoney } from "@/lib/calc";
+import { formatHours, formatMoney } from "@/lib/calc";
 import type { Units } from "@/lib/calc";
 import {
   deleteComparisonEntry,
@@ -18,14 +18,14 @@ import { encodeComparison, shareText } from "@/lib/sharing";
 import { getSharePrivacy } from "@/lib/sharePrivacy";
 import { shareLink } from "@/lib/nativeShare";
 import { track } from "@/lib/analytics";
-import { sanitizeIntegerInput } from "@/lib/numericInput";
-import { clampPrice } from "@/lib/limits";
 import PageEnter from "@/components/PageEnter";
 import ScreenHeader from "@/components/ScreenHeader";
 import TappableExpandCard from "@/components/TappableExpandCard";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import BounceLoader from "@/components/BounceLoader";
+import ShareCard from "@/components/ShareCard";
 import { TrashIcon } from "@/components/icons";
+import { isChallengeComplete } from "@/lib/challenge";
 
 const HONESTY_KEY = "realcost:reaction_honesty_seen";
 const PAGE_SIZE = 10;
@@ -33,7 +33,7 @@ const PAGE_SIZE = 10;
 type SharedSectionKey = "waiting" | "seen" | "received";
 
 const SECTION_META: Record<SharedSectionKey, { title: string; emptyHint?: string }> = {
-  waiting: { title: "Waiting on a reply", emptyHint: "Nothing waiting. Send a price from Home." },
+  waiting: { title: "Challenge pending", emptyHint: "Nothing waiting. Challenge a friend from Home." },
   seen: { title: "Seen / replied", emptyHint: "No replies yet." },
   received: { title: "Received" },
 };
@@ -53,10 +53,8 @@ function SharedCard({
   entry,
   index,
   isEditing,
-  editPrice,
   editNote,
   onToggle,
-  onEditPrice,
   onEditNote,
   onSave,
   onReshare,
@@ -65,20 +63,21 @@ function SharedCard({
   entry: ComparisonEntry;
   index: number;
   isEditing: boolean;
-  editPrice: string;
   editNote: string;
   onToggle: () => void;
-  onEditPrice: (value: string) => void;
   onEditNote: (value: string) => void;
   onSave: () => void;
   onReshare: () => void;
   onDelete: () => void;
 }) {
+  const peerLabel =
+    entry.peerName && entry.peerName !== "They" ? entry.peerName : null;
+
   return (
     <TappableExpandCard
       open={isEditing}
       onToggle={onToggle}
-      ariaLabel={`${formatMoney(entry.price)} share. Tap to edit.`}
+      ariaLabel={`${formatMoney(entry.price)} share. Tap to add a note.`}
       className="feed-item feed-item-tappable feed-item-compact"
       style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}
     >
@@ -92,9 +91,14 @@ function SharedCard({
         <p className="text-xs text-[var(--success)] mt-1">
           Seen
           {entry.peerHours != null ? ` · they said ${formatHours(entry.peerHours)}` : ""}
+          {peerLabel ? ` · ${peerLabel}` : ""}
         </p>
       ) : entry.role === "sent" ? (
-        <p className="text-xs text-[var(--action)] mt-1">Waiting on a reply</p>
+        <p className="text-xs text-[var(--action)] mt-1">
+          Challenge pending{peerLabel ? ` · ${peerLabel}` : ""}
+        </p>
+      ) : peerLabel ? (
+        <p className="text-xs text-[var(--muted)] mt-1">From {peerLabel}</p>
       ) : null}
       <div className="feed-item-row">
         <span className="text-[var(--foreground)] font-medium tabular-nums money-clip">
@@ -112,11 +116,23 @@ function SharedCard({
       {entry.note ? <p className="text-xs text-[var(--champagne)] mt-1">{entry.note}</p> : null}
       {entry.role === "received" && entry.peerHours !== undefined && (
         <p className="text-xs text-[var(--subtle)] mt-1">
-          {entry.peerName && entry.peerName !== "They"
-            ? `${entry.peerName} said ${formatHours(entry.peerHours)}. You said ${formatHours(entry.hours)}.`
+          {peerLabel
+            ? `${peerLabel} said ${formatHours(entry.peerHours)}. You said ${formatHours(entry.hours)}.`
             : `They said ${formatHours(entry.peerHours)}. You said ${formatHours(entry.hours)}.`}
         </p>
       )}
+      {isChallengeComplete({ hours: entry.hours, peerHours: entry.peerHours }) ? (
+        <div className="mt-3" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+          <p className="text-xs text-[var(--champagne)] mb-2">Challenge complete · unlock dual card</p>
+          <ShareCard
+            price={entry.price}
+            hours={entry.hours}
+            compareHours={entry.peerHours}
+            compareLabel={entry.role === "sent" ? "Them" : "Them"}
+            label={entry.role === "sent" ? "You" : "You"}
+          />
+        </div>
+      ) : null}
 
       <div
         className={`history-edit-panel${isEditing ? " is-open" : ""}`}
@@ -124,22 +140,8 @@ function SharedCard({
         onKeyDown={(e) => e.stopPropagation()}
       >
         <div className="history-edit-inner feed-edit-panel feed-edit-panel-compact">
-          <div className="edit-stagger" style={{ ["--stagger-i" as string]: 0 }}>
-            <label className="field-label" htmlFor={`edit-price-${entry.id}`}>
-              Price
-            </label>
-            <div className="money-field money-field-compact">
-              <span aria-hidden="true">$</span>
-              <input
-                id={`edit-price-${entry.id}`}
-                inputMode="numeric"
-                value={editPrice}
-                onChange={(e) => onEditPrice(sanitizeIntegerInput(e.target.value))}
-              />
-            </div>
-          </div>
           {entry.role === "received" && entry.myRate != null && entry.myRate > 0 ? (
-            <div className="edit-stagger" style={{ ["--stagger-i" as string]: 1 }}>
+            <div className="edit-stagger" style={{ ["--stagger-i" as string]: 0 }}>
               <p className="settings-inline-note" style={{ margin: 0 }}>
                 Your rate on this device:{" "}
                 <span className="tabular-nums text-[var(--champagne)]">{formatMoney(entry.myRate)}/hr</span>
@@ -151,7 +153,7 @@ function SharedCard({
             className="edit-stagger"
             style={{
               ["--stagger-i" as string]:
-                entry.role === "received" && entry.myRate != null && entry.myRate > 0 ? 2 : 1,
+                entry.role === "received" && entry.myRate != null && entry.myRate > 0 ? 1 : 0,
             }}
           >
             <label className="field-label" htmlFor={`edit-note-${entry.id}`}>
@@ -170,15 +172,10 @@ function SharedCard({
             className="edit-stagger feed-edit-actions feed-edit-actions-icons"
             style={{
               ["--stagger-i" as string]:
-                entry.role === "received" && entry.myRate != null && entry.myRate > 0 ? 3 : 2,
+                entry.role === "received" && entry.myRate != null && entry.myRate > 0 ? 2 : 1,
             }}
           >
-            <button
-              type="button"
-              className="primary-action pressable"
-              disabled={!(parseFloat(editPrice) > 0)}
-              onClick={onSave}
-            >
+            <button type="button" className="primary-action pressable" onClick={onSave}>
               Save
             </button>
             <button type="button" className="secondary-action pressable" onClick={onReshare}>
@@ -206,7 +203,6 @@ export default function FeedPage() {
   const [tone, setTone] = useState(DEFAULT_PERSONALIZATION.tone);
   const [log, setLog] = useState<ComparisonEntry[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editPrice, setEditPrice] = useState("");
   const [editNote, setEditNote] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [showHonesty, setShowHonesty] = useState(false);
@@ -296,17 +292,11 @@ export default function FeedPage() {
       return;
     }
     setEditingId(entry.id);
-    setEditPrice(String(entry.price));
     setEditNote(entry.note ?? "");
   };
 
   const handleSaveEdit = (entry: ComparisonEntry) => {
-    const nextPrice = clampPrice(parseFloat(editPrice));
-    if (!(nextPrice > 0)) return;
-    const nextHours = computeRealCost(nextPrice, units).hours;
     updateComparisonEntry(entry.id, {
-      price: nextPrice,
-      hours: nextHours,
       note: editNote.trim() || undefined,
     });
     track("comparison_updated", { role: entry.role });
@@ -371,10 +361,8 @@ export default function FeedPage() {
               entry={entry}
               index={index}
               isEditing={editingId === entry.id}
-              editPrice={editPrice}
               editNote={editNote}
               onToggle={() => openEdit(entry)}
-              onEditPrice={setEditPrice}
               onEditNote={setEditNote}
               onSave={() => handleSaveEdit(entry)}
               onReshare={() => void handleReshare(entry)}

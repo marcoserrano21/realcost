@@ -63,6 +63,43 @@
   background: var(--gradient-panel);
 }
 
+.weekly-streak--top {
+  max-width: 24rem;
+  gap: 8px;
+  padding: 10px 14px 8px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+}
+
+.weekly-streak--top .weekly-streak-hours {
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.weekly-streak--top .weekly-streak-life-span {
+  font-size: 0.62rem;
+}
+
+.weekly-streak--top .weekly-streak-top {
+  gap: 8px;
+}
+
+.weekly-streak--top .weekly-streak-bars {
+  height: 36px;
+  gap: 4px;
+}
+
+.weekly-streak--top .weekly-streak-meta {
+  font-size: 0.68rem;
+}
+
+.weekly-streak-share {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  min-height: 32px;
+  padding: 0;
+}
+
 .weekly-streak-hot {
   border-color: color-mix(in srgb, var(--champagne) 35%, var(--border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--champagne) 12%, transparent);
@@ -94,6 +131,13 @@
   font-weight: 650;
   letter-spacing: -0.04em;
   color: var(--champagne);
+}
+
+.weekly-streak-life-span {
+  margin-top: 0.15rem;
+  text-align: left;
+  color: color-mix(in srgb, var(--champagne) 55%, var(--subtle));
+  font-size: 0.68rem;
 }
 
 .weekly-streak-chip {

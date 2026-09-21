@@ -48,9 +48,24 @@
   color: var(--action);
 }
 
-.decision-sheet-bought .decision-icon,
-.decision-sheet-skipped .decision-icon {
+.decision-sheet-bought {
+  border-color: color-mix(in srgb, var(--success) 42%, var(--border));
+}
+
+.decision-sheet-bought .decision-icon {
   color: var(--success);
+}
+
+.decision-sheet-skipped {
+  border-color: color-mix(in srgb, var(--champagne) 42%, var(--border));
+}
+
+.decision-sheet-skipped .decision-icon {
+  color: var(--champagne);
+}
+
+.decision-sheet-thinking {
+  border-color: color-mix(in srgb, var(--action) 42%, var(--border));
 }
 
 .decision-sheet-thinking .decision-icon {

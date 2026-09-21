@@ -1,4 +1,4 @@
-import { formatHours, formatMoney } from "./calc";
+import { formatHours, formatLifeSpan, formatMoney } from "./calc";
 import { type ShareCardFormat, canvasSizeForFormat } from "./shareFormats";
 
 export type ShareImageInput = {
@@ -9,6 +9,8 @@ export type ShareImageInput = {
   compareHours?: number;
   compareLabel?: string;
   format?: ShareCardFormat;
+  /** Skipped “hours kept” meme card. */
+  variant?: "standard" | "hoursKept";
 };
 
 type SharePosterPalette = {
@@ -124,6 +126,47 @@ export function paintSharePoster(input: ShareImageInput): HTMLCanvasElement {
   ctx.letterSpacing = "0.16em";
   ctx.fillText("REALCOST", 96, y(160));
 
+  const hoursKept = input.variant === "hoursKept";
+
+  if (hoursKept) {
+    ctx.fillStyle = palette.hours;
+    ctx.font = "650 160px Outfit, system-ui, sans-serif";
+    const hoursLabel = formatHours(input.hours);
+    ctx.fillText(hoursLabel, 96, y(520));
+
+    ctx.fillStyle = palette.meta;
+    ctx.font = "500 40px Outfit, system-ui, sans-serif";
+    ctx.fillText("kept this week", 96, y(590));
+
+    const keptGloss = formatLifeSpan(input.hours);
+    let metaY = 660;
+    if (keptGloss) {
+      ctx.fillStyle = palette.meta;
+      ctx.font = "500 32px Outfit, system-ui, sans-serif";
+      ctx.fillText(keptGloss, 96, y(640));
+      metaY = 710;
+    }
+
+    if (input.price > 0) {
+      ctx.fillStyle = palette.price;
+      ctx.font = "500 36px Outfit, system-ui, sans-serif";
+      ctx.fillText(`skipped ${formatMoney(input.price)}`, 96, y(metaY));
+    }
+
+    ctx.fillStyle = palette.rule;
+    roundRect(ctx, 96, y(keptGloss ? 780 : 720), 72, 6, 3);
+    ctx.fill();
+
+    ctx.fillStyle = palette.tagline;
+    ctx.font = "550 52px Outfit, system-ui, sans-serif";
+    ctx.fillText("I almost bought it.", 96, y(980));
+
+    ctx.fillStyle = palette.cta;
+    ctx.font = "650 40px Outfit, system-ui, sans-serif";
+    ctx.fillText("What does it cost you?", 96, y(1160));
+    return canvas;
+  }
+
   ctx.fillStyle = palette.price;
   ctx.font = "500 42px Outfit, system-ui, sans-serif";
   const priceText = formatMoney(input.price);
@@ -149,6 +192,10 @@ export function paintSharePoster(input: ShareImageInput): HTMLCanvasElement {
     ctx.font = "650 92px Outfit, system-ui, sans-serif";
     ctx.fillText(youHours, 96, 540);
     ctx.fillText(themHours, width / 2 + 24, 540);
+
+    ctx.fillStyle = palette.rule;
+    roundRect(ctx, 96, y(680), 72, 6, 3);
+    ctx.fill();
   } else {
     ctx.fillStyle = palette.hours;
     ctx.font = "650 160px Outfit, system-ui, sans-serif";
@@ -159,11 +206,18 @@ export function paintSharePoster(input: ShareImageInput): HTMLCanvasElement {
     ctx.font = "500 40px Outfit, system-ui, sans-serif";
     const ofWork = input.label ? `of ${input.label}'s life` : "of my life";
     ctx.fillText(ofWork, 96, y(590));
-  }
 
-  ctx.fillStyle = palette.rule;
-  roundRect(ctx, 96, y(680), 72, 6, 3);
-  ctx.fill();
+    const gloss = formatLifeSpan(input.hours);
+    if (gloss) {
+      ctx.fillStyle = palette.meta;
+      ctx.font = "500 32px Outfit, system-ui, sans-serif";
+      ctx.fillText(gloss, 96, y(640));
+    }
+
+    ctx.fillStyle = palette.rule;
+    roundRect(ctx, 96, y(gloss ? 720 : 680), 72, 6, 3);
+    ctx.fill();
+  }
 
   ctx.fillStyle = palette.tagline;
   ctx.font = "550 52px Outfit, system-ui, sans-serif";

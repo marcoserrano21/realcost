@@ -6,24 +6,94 @@
   animation: polymarket-card 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.share-format-picker {
-  margin-bottom: 10px;
+/* Floating pill chrome — not a twin of the poster */
+.share-format-pill {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(100%, 200px);
+  margin: 0 auto 14px;
+  padding: 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.share-format-pill-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--action-strong), #5b86f7);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.share-format-pill-option {
+  position: relative;
+  z-index: 1;
+  min-height: 40px;
+  padding: 6px 14px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+}
+
+.share-format-pill-option.is-active {
+  color: #ffffff;
+}
+
+.share-format-pill-option:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+html[data-reduce-motion="true"] .share-format-pill-thumb,
+html[data-reduce-motion="true"] .share-card {
+  transition: none;
 }
 
 .share-card--poster45,
 .share-card--dual {
   aspect-ratio: 4 / 5;
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+  transition: max-width 200ms cubic-bezier(0.22, 1, 0.36, 1), aspect-ratio 200ms ease;
 }
 
 .share-card--story916 {
   aspect-ratio: 9 / 16;
-  max-height: min(70vh, 560px);
+  width: auto;
+  max-width: min(100%, 236px);
+  max-height: min(58vh, 420px);
+  margin-inline: auto;
+  padding: 1.25rem 1.2rem 1.15rem;
+  transition: max-width 200ms cubic-bezier(0.22, 1, 0.36, 1), max-height 200ms ease;
+}
+
+.share-card--story916 .share-card-hours {
+  font-size: clamp(1.75rem, 8vw, 2.6rem);
+}
+
+.share-card--story916 .share-card-hero {
+  padding: 0.35rem 0 0.15rem;
+}
+
+.share-card--story916 .share-card-tagline {
+  font-size: 0.92rem;
 }
 
 .share-card {
   position: relative;
-  width: 100%;
-  max-width: 24rem;
   padding: 1.65rem 1.7rem 1.55rem;
   display: flex;
   flex-direction: column;
@@ -158,6 +228,14 @@ html.light .share-card-grain {
   color: var(--share-meta);
   font-size: 0.88rem;
   letter-spacing: -0.01em;
+}
+
+.share-card-life-span {
+  margin-top: 0.1rem;
+  color: color-mix(in srgb, var(--share-meta) 82%, transparent);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-align: left;
 }
 
 .share-card-rule {

@@ -28,7 +28,7 @@ The business task in MVP is **not** revenue — it's proving people compare pric
 
 **Runway strategy:** Minimize burn; maximize learning per week of organic content.
 
-**Code status:** Hours Budget / Pro paywall described later in this doc are **product plans only** — not implemented in `src/` yet.
+**Code status:** Hours Budget / Pro paywall described later in this doc are **product plans only** — not implemented in `src/` yet. **Blocked** until Phase 2 share → recipient → re-share metrics clear (see thrive design spec `docs/superpowers/specs/2026-09-20-realcost-thrive-recommendations-design.md`).
 
 ---
 

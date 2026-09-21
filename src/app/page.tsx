@@ -21,6 +21,7 @@ import { encodeComparison, newShareId, shareText } from "@/lib/sharing";
 import { getSharePrivacy } from "@/lib/sharePrivacy";
 import { shareLink } from "@/lib/nativeShare";
 import { track } from "@/lib/analytics";
+import { triggerHaptic } from "@/lib/haptics";
 import { getPausedStreak } from "@/lib/streaks";
 import type { PausedStreak } from "@/lib/streaks";
 import UnitsSetup from "@/components/UnitsSetup";
@@ -35,6 +36,8 @@ import InstallPrompt from "@/components/InstallPrompt";
 import ScreenHeader from "@/components/ScreenHeader";
 import BounceLoader from "@/components/BounceLoader";
 import { PURCHASE_CATEGORY_OPTIONS } from "@/lib/personalizationOptions";
+import { markA2HSPeak } from "@/lib/storage";
+import { isMeaningfulHoursKept } from "@/lib/a2hsGate";
 
 const CLEAR_FADE_MS = 720;
 const STACK_VISIBLE_DELAY_MS = 280;
@@ -89,10 +92,10 @@ export default function Home() {
           typeof document !== "undefined" &&
           document.documentElement.getAttribute("data-reduce-motion") === "true";
         const openId = requestAnimationFrame(() => setCardEntered(true));
-        const visibleTimer = window.setTimeout(
-          () => setStackVisible(true),
-          reduced ? 0 : STACK_VISIBLE_DELAY_MS
-        );
+        const visibleTimer = window.setTimeout(() => {
+          setStackVisible(true);
+          triggerHaptic([8, 30, 12]);
+        }, reduced ? 0 : STACK_VISIBLE_DELAY_MS);
         return () => {
           cancelAnimationFrame(openId);
           window.clearTimeout(visibleTimer);
@@ -168,17 +171,21 @@ export default function Home() {
     setLockedChoice(c);
     setStreak(getPausedStreak());
     setActiveDecision({ choice: c, hours: liveResult.hours, price: priceNum });
+    triggerHaptic(10);
+    if (c === "skipped" && isMeaningfulHoursKept(liveResult.hours)) {
+      markA2HSPeak("skipped");
+    }
     track(
       c === "bought" ? "decision_bought" : c === "skipped" ? "decision_skipped" : "decision_thinking",
       { has_category: Boolean(category) }
     );
   };
 
-  const handleShare = async () => {
+  const handleShare = async (asChallenge = false) => {
     if (!liveResult || !hasPrice) return;
-    const privacy = getSharePrivacy();
+    const privacy = asChallenge ? "exact" : getSharePrivacy();
     const shareId = newShareId();
-    track("share_started", { privacy });
+    track("share_started", { privacy, challenge: asChallenge });
     const shareUrl = encodeComparison(
       window.location.origin,
       { price: priceNum, hours: liveResult.hours },
@@ -199,17 +206,21 @@ export default function Home() {
     });
 
     const result = await shareLink({
-      title: "What does this actually cost you?",
+      title: asChallenge ? "Same price. What does it cost you?" : "What does this actually cost you?",
       text,
       url: shareUrl,
     });
     if (result === "shared") {
-      track("share_completed", { method: "native", privacy });
+      track("share_completed", { method: "native", privacy, challenge: asChallenge });
+      triggerHaptic([10, 40, 14]);
+      markA2HSPeak("share");
       return;
     }
     if (result === "copied") {
       setCopied(true);
-      track("share_completed", { method: "clipboard", privacy });
+      track("share_completed", { method: "clipboard", privacy, challenge: asChallenge });
+      triggerHaptic([10, 40, 14]);
+      markA2HSPeak("share");
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -231,11 +242,11 @@ export default function Home() {
     <main className="screen-shell">
       <div className="home-stage w-full max-w-sm flex flex-col items-center">
         <div className="home-hero flex flex-col items-center gap-6 w-full">
+          <WeeklyStreak streak={streak} compactTop />
+
           <ScreenHeader title="RealCost" kicker="What are you thinking about buying?" />
 
           <CashAmountField value={price} onChange={onPriceChange} ariaLabel="Price" autoFocus step={1} />
-
-          <WeeklyStreak streak={streak} />
         </div>
 
         <div
@@ -266,7 +277,7 @@ export default function Home() {
                     customLabel={customCategory}
                     onCategoryChange={(value) => {
                       setCategory(value);
-                      track("category_selected", { category: value });
+                      if (value) track("category_selected", { category: value });
                     }}
                     onCustomLabelChange={setCustomCategory}
                   />
@@ -278,6 +289,8 @@ export default function Home() {
                       {(["bought", "thinking", "skipped"] as const).map((c) => {
                         const isActive = lockedChoice === c;
                         const isLockedOut = decisionCommitted && !isActive;
+                        const emphasizeSkipped =
+                          c === "skipped" && !decisionCommitted && (displayResult?.hours ?? 0) >= 4;
                         return (
                           <button
                             key={c}
@@ -286,9 +299,9 @@ export default function Home() {
                             aria-pressed={isActive}
                             aria-disabled={decisionCommitted}
                             onClick={() => handleChoice(c)}
-                            className={`choice-chip pressable${isActive ? " choice-chip-active" : ""}${
+                            className={`choice-chip choice-chip-${c} pressable${isActive ? " choice-chip-active" : ""}${
                               isLockedOut ? " choice-chip-locked" : ""
-                            }`}
+                            }${emphasizeSkipped ? " choice-chip-emphasize" : ""}`}
                           >
                             {c === "bought" ? "Bought it" : c === "thinking" ? "Still thinking" : "Skipped it"}
                           </button>
@@ -310,14 +323,24 @@ export default function Home() {
                 </div>
 
                 <div className="home-reveal-item" style={revealStyle(4)}>
-                  <button
-                    type="button"
-                    onClick={handleShare}
-                    className="primary-action pressable w-full"
-                    disabled={resultsLeaving || !hasPrice}
-                  >
-                    {copied ? "Link copied" : "Send this price"}
-                  </button>
+                  <div className="flex flex-col gap-2 w-full">
+                    <button
+                      type="button"
+                      onClick={() => void handleShare(false)}
+                      className="primary-action pressable w-full"
+                      disabled={resultsLeaving || !hasPrice}
+                    >
+                      {copied ? "Link copied" : "Send this price"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleShare(true)}
+                      className="secondary-action pressable w-full"
+                      disabled={resultsLeaving || !hasPrice}
+                    >
+                      Challenge a friend
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : null}

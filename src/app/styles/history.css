@@ -289,6 +289,137 @@ html.light .compact-select-menu {
   gap: 12px;
 }
 
+.category-heat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.category-heat-metric {
+  position: relative;
+  flex: 0 1 auto;
+  max-width: 58%;
+}
+
+.category-heat-metric-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 4px 8px 4px 10px;
+  color: var(--subtle);
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+  background: color-mix(in srgb, var(--surface-raised) 70%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.category-heat-metric-trigger span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-heat-metric-trigger .settings-chevron {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.category-heat-metric.is-open .category-heat-metric-trigger,
+.category-heat-metric-trigger:hover,
+.category-heat-metric-trigger:focus-visible {
+  color: var(--foreground);
+  border-color: color-mix(in srgb, var(--action) 40%, var(--border));
+  background: color-mix(in srgb, var(--action) 8%, transparent);
+  outline: none;
+}
+
+.category-heat-metric-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: min(240px, 78vw);
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  color: var(--foreground);
+  background: var(--surface-raised);
+  background-image: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--surface-raised) 92%, #2a3350),
+    var(--surface-raised) 55%,
+    color-mix(in srgb, var(--surface-raised) 90%, #1a2238)
+  );
+  border: 1px solid color-mix(in srgb, var(--border) 80%, var(--action));
+  border-radius: 14px;
+  box-shadow:
+    0 18px 48px rgb(0 0 0 / 72%),
+    0 0 0 1px rgb(0 0 0 / 35%);
+  backdrop-filter: none;
+  isolation: isolate;
+}
+
+.category-heat-metric-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+  padding: 12px 12px;
+  text-align: left;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.category-heat-metric-option-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.category-heat-metric-option-hint {
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--subtle);
+}
+
+.category-heat-metric-option:hover,
+.category-heat-metric-option:focus-visible {
+  background: color-mix(in srgb, var(--action) 10%, transparent);
+  outline: none;
+}
+
+.category-heat-metric-option.is-selected {
+  background: color-mix(in srgb, var(--champagne) 12%, transparent);
+}
+
+.category-heat-metric-option.is-selected .category-heat-metric-option-label {
+  color: var(--champagne);
+}
+
+.category-heat-empty {
+  margin: 0;
+  padding: 6px 0 2px;
+  color: var(--subtle);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .category-heat-list {
   list-style: none;
   margin: 0;
@@ -319,6 +450,19 @@ html.light .compact-select-menu {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--action), var(--champagne));
+  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.category-heat-fill-kept {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--champagne) 55%, var(--action)), var(--champagne));
+}
+
+.category-heat-fill-thinking {
+  background: linear-gradient(90deg, var(--action-strong), var(--action));
+}
+
+.category-heat-fill-bought {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--success) 55%, var(--action)), var(--success));
 }
 
 .history-pagination {
@@ -340,7 +484,7 @@ html.light .compact-select-menu {
   pointer-events: none;
 }
 
-.history-reshare-icon {
+.history-recategorize-icon {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
@@ -348,24 +492,36 @@ html.light .compact-select-menu {
   width: 34px;
   height: 34px;
   padding: 0;
-  color: var(--action);
+  color: var(--champagne);
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--action) 35%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--champagne) 40%, var(--border));
   border-radius: 10px;
   cursor: pointer;
   transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
-.history-reshare-icon svg {
+.history-recategorize-icon svg {
   width: 16px;
   height: 16px;
 }
 
-.history-reshare-icon:hover,
-.history-reshare-icon:focus-visible {
-  border-color: color-mix(in srgb, var(--action) 65%, var(--border));
-  background: color-mix(in srgb, var(--action) 12%, transparent);
+.history-recategorize-icon:hover,
+.history-recategorize-icon:focus-visible,
+.history-recategorize-icon.is-active {
+  border-color: color-mix(in srgb, var(--champagne) 70%, var(--border));
+  background: color-mix(in srgb, var(--champagne) 12%, transparent);
   outline: none;
+}
+
+.history-category-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.history-category-panel .field-label {
+  margin: 0;
 }
 
 .history-edit {
@@ -435,7 +591,14 @@ html.light .compact-select-menu {
   height: 100%;
 }
 
-.history-icon-bought,
-.history-icon-skipped {
+.history-icon-bought {
   color: var(--success);
+}
+
+.history-icon-skipped {
+  color: var(--champagne);
+}
+
+.history-icon-thinking {
+  color: var(--action);
 }

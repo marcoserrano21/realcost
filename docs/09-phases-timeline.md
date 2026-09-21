@@ -20,6 +20,8 @@ This timeline sequences work by **risk reduction**: magic first, distribution se
 | **1** | Loop polish | ✅ Largely done | Share card, analytics, Shared inbox, UX premium, docs, tests |
 | **2** | Distribution | Next | Organic content, OG experiments, hook A/B |
 | **3** | Depth | Conditional | Hours Budget UI, PWA SW, history insights |
+
+> **Hours Budget gate:** Blocked until Phase 2 loop metrics clear (`share_completed` → `recipient_calculation_completed` → react/re-share). See `docs/superpowers/specs/2026-09-20-realcost-thrive-recommendations-design.md`. Do not ship Hours Budget UI before that gate.
 | **4** | Platform | Later | Extension, wishlist — only if loop healthy |
 
 ---
