@@ -1,0 +1,21 @@
+.compare-ritual-price {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 10vw, 2.75rem);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  color: var(--foreground);
+}
+
+.compare-ritual-reveal {
+  padding: 8px 0 4px;
+}
+
+.compare-ritual details summary {
+  list-style: none;
+}
+
+.compare-ritual details summary::-webkit-details-marker {
+  display: none;
+}
+

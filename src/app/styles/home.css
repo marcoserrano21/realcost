@@ -1,0 +1,303 @@
+.money-field:focus-within,
+.text-field:focus,
+.cash-amount-field:focus-within,
+.select-field:focus,
+.caption-field:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.money-field input:focus-visible,
+.text-field:focus-visible,
+.cash-amount-field input:focus-visible,
+.select-field:focus-visible,
+.caption-field:focus-visible {
+  outline: none;
+}
+
+.result-card {
+  width: 100%;
+  max-width: 24rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  background: var(--gradient-panel);
+  border: 1px solid var(--border);
+  border-radius: 1.75rem;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 28%);
+}
+
+.money-clip,
+.hours-clip {
+  max-width: 48%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: inherit;
+}
+
+.home-stage {
+  width: 100%;
+}
+
+.home-hero {
+  width: 100%;
+}
+
+.home-results-slot {
+  display: grid;
+  grid-template-rows: 0fr;
+  width: 100%;
+  max-width: 24rem;
+  margin-top: 0;
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  pointer-events: none;
+  transition:
+    grid-template-rows 760ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-top 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-results-slot.is-open {
+  grid-template-rows: 1fr;
+  margin-top: 1.5rem;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  pointer-events: auto;
+}
+
+.home-results-slot.is-leaving {
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  pointer-events: none;
+}
+
+.home-results-slot-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.home-reveal-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 24rem;
+}
+
+.home-reveal-stack.is-leaving .home-reveal-item {
+  animation: none !important;
+  opacity: 1;
+  transform: none;
+  filter: none;
+  pointer-events: none;
+}
+
+.home-stack {
+  width: 100%;
+}
+
+/* Compact Apple Cash-style amount control */
+.cash-amount {
+  --cash-chars: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.cash-amount-field {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  min-width: 4.75rem;
+  width: calc(1.1em + (var(--cash-chars) * 1ch) + 1.85rem);
+  max-width: min(100%, 16.5rem);
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 1.35rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  transition:
+    width 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    min-width 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cash-amount-prefix,
+.cash-amount-suffix {
+  flex-shrink: 0;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cash-amount-field input {
+  flex: 0 0 auto;
+  width: calc(var(--cash-chars) * 1ch);
+  min-width: 1ch;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  color: var(--foreground);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  transition: width 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cash-amount-field input::placeholder {
+  color: var(--subtle);
+}
+
+html[data-reduce-motion="true"] .cash-amount-field,
+html[data-reduce-motion="true"] .cash-amount-field input {
+  transition: none;
+}
+
+.home-reveal-item {
+  width: 100%;
+  max-width: 24rem;
+  opacity: 0;
+  transform: translate3d(0, 22px, 0) scale(0.982);
+  filter: blur(6px);
+  pointer-events: none;
+  will-change: opacity, transform, filter;
+  transition:
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 520ms ease,
+    max-height 560ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin 480ms ease;
+}
+
+.home-reveal-stack.is-visible .home-reveal-item {
+  animation: reveal-rise 1000ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(180ms + (var(--reveal-i, 0) * 160ms));
+  pointer-events: auto;
+}
+
+.home-reveal-stack.is-decided .home-reveal-item[data-collapse="secondary"] {
+  animation: none;
+  opacity: 0;
+  transform: translate3d(0, -8px, 0) scale(0.98);
+  filter: blur(4px);
+  max-height: 0;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.home-reveal-stack.is-decided .home-reveal-item[data-collapse="chips"] .choice-chip-locked {
+  display: none;
+}
+
+.home-reveal-stack.is-decided .home-reveal-item[data-collapse="chips"] .flex.gap-2 {
+  justify-content: center;
+}
+
+.home-reveal-stack.is-decided .home-reveal-item[data-collapse="chips"] .choice-chip-active {
+  flex: 0 1 auto;
+  min-width: 9.5rem;
+  padding-inline: 18px;
+}
+
+/* Breathing room between decision chips and ShareCard */
+.home-reveal-stack > .home-reveal-item[data-collapse="chips"] + .home-reveal-item {
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+}
+
+.choice-chip {
+  flex: 1;
+  min-height: 48px;
+  padding: 10px 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.choice-chip:hover:not(:disabled) {
+  color: var(--foreground);
+}
+
+.choice-chip-active {
+  color: #0a0a10;
+  background: linear-gradient(135deg, #e8e8f0, #f5f5f8);
+}
+
+.choice-chip:disabled {
+  cursor: default;
+}
+
+.choice-chip-locked {
+  opacity: 0.42;
+}
+
+/* Borders match History icons — bought mint, thinking cobalt, skipped champagne */
+.choice-chip-bought {
+  border-color: color-mix(in srgb, var(--success) 48%, var(--border));
+}
+
+.choice-chip-bought:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--success) 78%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--success) 16%, transparent);
+}
+
+.choice-chip-bought.choice-chip-active {
+  border-color: var(--success);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--success) 28%, transparent);
+}
+
+.choice-chip-thinking {
+  border-color: color-mix(in srgb, var(--action) 48%, var(--border));
+}
+
+.choice-chip-thinking:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--action) 78%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--action) 16%, transparent);
+}
+
+.choice-chip-thinking.choice-chip-active {
+  border-color: var(--action);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--action) 28%, transparent);
+}
+
+.choice-chip-skipped {
+  border-color: color-mix(in srgb, var(--champagne) 48%, var(--border));
+}
+
+.choice-chip-skipped:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--champagne) 78%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--champagne) 16%, transparent);
+  color: var(--champagne);
+}
+
+.choice-chip-skipped.choice-chip-active {
+  border-color: var(--champagne);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--champagne) 28%, transparent);
+}
+
+.choice-chip-emphasize {
+  border-color: color-mix(in srgb, var(--champagne) 65%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--champagne) 22%, transparent);
+  color: var(--champagne);
+}

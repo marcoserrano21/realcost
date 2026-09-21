@@ -1,0 +1,164 @@
+.decision-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(7 7 11 / 62%);
+  backdrop-filter: blur(6px);
+  animation: decision-fade 180ms ease;
+}
+
+.confirm-overlay {
+  align-items: center;
+}
+
+.confirm-sheet {
+  text-align: left;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.confirm-actions .decision-action {
+  width: 100%;
+}
+
+.decision-sheet {
+  width: min(100%, 420px);
+  padding: clamp(22px, 6vw, 32px);
+  color: var(--foreground);
+  text-align: center;
+  background: var(--gradient-panel);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 40%);
+  animation: decision-rise 220ms ease;
+}
+
+.decision-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 16px;
+  color: var(--action);
+}
+
+.decision-sheet-bought {
+  border-color: color-mix(in srgb, var(--success) 42%, var(--border));
+}
+
+.decision-sheet-bought .decision-icon {
+  color: var(--success);
+}
+
+.decision-sheet-skipped {
+  border-color: color-mix(in srgb, var(--champagne) 42%, var(--border));
+}
+
+.decision-sheet-skipped .decision-icon {
+  color: var(--champagne);
+}
+
+.decision-sheet-thinking {
+  border-color: color-mix(in srgb, var(--action) 42%, var(--border));
+}
+
+.decision-sheet-thinking .decision-icon {
+  color: var(--action);
+}
+
+.decision-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.decision-sheet h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+
+.decision-body {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.decision-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.decision-action {
+  width: 100%;
+}
+
+.install-prompt {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(7 7 11 / 55%);
+  backdrop-filter: blur(6px);
+}
+
+.install-prompt-card {
+  width: min(100%, 420px);
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: var(--gradient-panel);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 40%);
+}
+
+.install-prompt-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
+}
+
+.install-prompt-body {
+  margin: 8px 0 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.install-prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.welcome-sheet {
+  text-align: left;
+}
+
+.welcome-sheet h2 {
+  text-align: left;
+}
+
+.welcome-points {
+  margin: 0 0 20px;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.welcome-points li + li {
+  margin-top: 6px;
+}

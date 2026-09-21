@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@import "./styles/tokens.css";
+@import "./styles/base.css";
+@import "./styles/primitives.css";
+@import "./styles/surfaces.css";
+@import "./styles/forms.css";
+@import "./styles/home.css";
+@import "./styles/history.css";
+@import "./styles/feed-shared.css";
+@import "./styles/settings.css";
+@import "./styles/overlays.css";
+@import "./styles/share.css";
+@import "./styles/compare.css";
+@import "./styles/tab-bar.css";
+@import "./styles/motion.css";
+@import "./styles/loading.css";
+@import "./styles/theme-light.css";
+@import "./styles/reduce-motion.css";

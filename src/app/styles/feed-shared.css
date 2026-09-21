@@ -1,0 +1,313 @@
+.feed-item-row .hours-clip {
+  text-align: right;
+}
+
+.feed-item-compact {
+  padding: 12px 16px;
+}
+
+.feed-edit-panel-compact {
+  gap: 8px;
+  padding: 6px 4px 4px;
+}
+
+.feed-edit-panel-compact .money-field-compact {
+  width: 100%;
+  max-width: 8.25rem;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  border-radius: 12px;
+  gap: 6px;
+}
+
+.feed-edit-panel-compact .money-field-compact input {
+  font-size: 0.95rem;
+}
+
+.feed-edit-panel-compact .text-field-compact {
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  border-radius: 12px;
+}
+
+/* Inset focus so rings stay inside the card (overflow:hidden clips outline) */
+.feed-edit-panel-compact .money-field-compact:focus-within,
+.feed-edit-panel-compact .text-field-compact:focus,
+.feed-edit-panel-compact .text-field-compact:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--focus) 55%, var(--border));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--surface) 88%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--focus) 75%, transparent);
+}
+
+.feed-edit-panel-compact .feed-edit-actions .primary-action,
+.feed-edit-panel-compact .feed-edit-actions .secondary-action,
+.feed-edit-panel-compact .feed-edit-actions .destructive-action {
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+}
+
+.weekly-streak {
+  width: 100%;
+  max-width: 20.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--gradient-panel);
+}
+
+.weekly-streak--top {
+  max-width: 24rem;
+  gap: 8px;
+  padding: 10px 14px 8px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+}
+
+.weekly-streak--top .weekly-streak-hours {
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.weekly-streak--top .weekly-streak-life-span {
+  font-size: 0.62rem;
+}
+
+.weekly-streak--top .weekly-streak-top {
+  gap: 8px;
+}
+
+.weekly-streak--top .weekly-streak-bars {
+  height: 36px;
+  gap: 4px;
+}
+
+.weekly-streak--top .weekly-streak-meta {
+  font-size: 0.68rem;
+}
+
+.weekly-streak-share {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  min-height: 32px;
+  padding: 0;
+}
+
+.weekly-streak-hot {
+  border-color: color-mix(in srgb, var(--champagne) 35%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--champagne) 12%, transparent);
+}
+
+.weekly-streak-empty {
+  border-style: dashed;
+}
+
+.weekly-streak-top {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.weekly-streak-label {
+  margin: 0;
+  color: var(--subtle);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.weekly-streak-hours {
+  margin: 4px 0 0;
+  font-family: var(--font-heading);
+  font-size: 1.55rem;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  color: var(--champagne);
+}
+
+.weekly-streak-life-span {
+  margin-top: 0.15rem;
+  text-align: left;
+  color: color-mix(in srgb, var(--champagne) 55%, var(--subtle));
+  font-size: 0.68rem;
+}
+
+.weekly-streak-chip {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  color: var(--action);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.weekly-streak-flame {
+  width: 0.95em;
+  height: 0.95em;
+  flex-shrink: 0;
+  color: var(--champagne);
+}
+
+.weekly-streak-hot .weekly-streak-flame {
+  color: color-mix(in srgb, var(--champagne) 70%, var(--action));
+}
+
+.weekly-streak-meta {
+  margin: 4px 0 0;
+  color: var(--subtle);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.weekly-streak-bars {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  align-items: end;
+  min-height: 44px;
+  padding-top: 2px;
+}
+
+.weekly-streak-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.weekly-streak-bar {
+  display: block;
+  width: 100%;
+  max-width: 18px;
+  height: 36px;
+  border-radius: 6px 6px 3px 3px;
+  background: color-mix(in srgb, var(--border) 80%, transparent);
+  transform-origin: bottom center;
+  transform: scaleY(calc(var(--bar-h, 8%) / 100));
+  transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms ease;
+}
+
+.weekly-streak-day.has-hours .weekly-streak-bar {
+  background: color-mix(in srgb, var(--champagne) 70%, var(--action));
+}
+
+.weekly-streak-day.is-today .weekly-streak-bar {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--action) 45%, transparent);
+}
+
+.weekly-streak-day-label {
+  color: var(--subtle);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+}
+
+.weekly-streak-day.is-today .weekly-streak-day-label {
+  color: var(--action);
+  font-weight: 600;
+}
+
+.weekly-streak-footer {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.feed-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feed-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feed-edit-panel {
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.feed-edit-panel .edit-stagger {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feed-edit-panel .edit-stagger.feed-edit-actions {
+  display: grid;
+  flex-direction: unset;
+  gap: 8px;
+}
+
+.feed-edit-panel .field-label {
+  margin: 0;
+}
+
+.feed-edit-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.feed-edit-actions .destructive-action {
+  grid-column: 1 / -1;
+}
+
+.feed-edit-actions .primary-action,
+.feed-edit-actions .secondary-action,
+.feed-edit-actions .destructive-action {
+  min-height: 42px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+}
+
+.feed-edit-actions-icons {
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+}
+
+.feed-edit-actions-icons .history-delete-icon {
+  margin-left: 0;
+}
+
+.shared-section-empty {
+  margin: 0;
+  padding: 0 2px;
+}
+
+.shared-honesty {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.shared-honesty p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  text-align: left;
+}
