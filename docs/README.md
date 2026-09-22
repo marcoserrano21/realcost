@@ -12,7 +12,7 @@ Operating handbook and **presentation-ready case study** for building, shipping,
 
 | If you are… | Read first |
 |-------------|------------|
-| **Reviewer / portfolio visitor** | [Product Vision](./00-product-vision.md) → [Personas](./04-user-personas.md) → [Journeys](./05-user-journeys.md) |
+| **Reviewer / portfolio visitor** | [Product Vision](./00-product-vision.md) → [Personas](./04-user-personas.md) → [Journeys](./05-user-journeys.md) → [Screen flows](./15-screen-flows-and-scenarios.md) |
 | **Engineer joining the build** | [Architecture](./01-architecture.md) → [Engineering Standards](./13-engineering-standards.md) → [QA Checklist](./12-qa-checklist.md) |
 | **Designer / brand** | [Design System](./02-design-system.md) → [Brand Guidelines](./03-brand-guidelines.md) → [Figma rules](./figma-design-system-rules.md) |
 | **Growth / marketing** | [Marketing & Growth](./07-marketing-growth.md) → [Analytics](./11-analytics.md) |
@@ -30,6 +30,7 @@ Operating handbook and **presentation-ready case study** for building, shipping,
 | [03](./03-brand-guidelines.md) | **Brand Guidelines** | Brand | Voice, share object rules, positioning |
 | [04](./04-user-personas.md) | **User Personas** | Research | Five personas (24–36) with design implications |
 | [05](./05-user-journeys.md) | **User Journeys & Flows** | UX | Onboard → calc → share → `/c` → Shared inbox |
+| [15](./15-screen-flows-and-scenarios.md) | **Screen Flows & Scenarios** | UX / PM | Per-screen states, scenarios, friction, improvement backlog |
 | [06](./06-behavioral-science.md) | **Behavioral Science** | Psychology | Salience, comparison, tone guardrails |
 | [07](./07-marketing-growth.md) | **Marketing & Growth** | Growth | Hooks, funnel, launch sequence |
 | [08](./08-security-privacy.md) | **Security & Privacy Audit** | Security | Critical / Hardening / Success-enablers |
@@ -52,6 +53,10 @@ Operating handbook and **presentation-ready case study** for building, shipping,
 | **Tabs** | Home · **Shared** · History · Settings |
 | **Share** | **Private** (default): price only · **Exact** (opt-in): price + hours · **never wage** |
 | **Share formats** | 4:5 poster · 9:16 story · dual “challenge” after both sides have hours |
+| **Share export** | PNG poster · WebM/MP4 reel reveal (reduced-motion → PNG) |
+| **`/c` teaser** | Instant US median (~$22/hr) benchmark — local constant, not a URL param |
+| **Onboarding wage** | Range buckets (midpoint) or Custom exact → Settings can refine |
+| **Tones** | Gently · Straight up · Hyped · Curious · Deadpan |
 | **Hours kept** | Skipped totals (week / all-time) + shareable identity card |
 | **Shared inbox** | Waiting / Seen / Received; reactions via opaque `s=` + `reply=1` |
 | **History** | Filters, recategorize, heat map lenses (kept / thinking / spent) |

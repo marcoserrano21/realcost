@@ -97,7 +97,7 @@ Architecture, journeys, design system, QA, security, brand, phases, README updat
 
 ### Analytics events (new)
 
-`share_image_started`, `share_image_completed`, `reaction_sent`, `reaction_received`, `a2hs_prompt_shown`, `a2hs_dismissed`, `a2hs_choice` — still sanitized (no wage/name). Share events may include safe `privacy` / `challenge` / `format` props.
+`share_image_started`, `share_image_completed`, `share_video_started`, `share_video_completed`, `reaction_sent`, `reaction_received`, `a2hs_prompt_shown`, `a2hs_dismissed`, `a2hs_choice` — still sanitized (no wage/name). Share events may include safe `privacy` / `challenge` / `format` props.
 
 ---
 
@@ -114,6 +114,8 @@ Architecture, journeys, design system, QA, security, brand, phases, README updat
 | **2026-09-18** | Growth / retention loop sprint | Streak, image share, reactions, heat map, A2HS, challenge poster |
 | **2026-09-20** | Thrive design + implementation plan | Loop-first craft recommendations 1–7 |
 | **2026-09-21** | Thrive craft shipped + docs sync | Formats, hours kept, haptics, peak install, gloss, heat lenses, safe-area, prod URL |
+| **2026-09-21** | Four share-loop features | `/c` median benchmark; wage buckets; share video; Deadpan tone |
+| **2026-09-21** | Screen flows & scenarios doc | New `15-screen-flows-and-scenarios.md` — per-screen states + improvement backlog |
 
 ---
 
