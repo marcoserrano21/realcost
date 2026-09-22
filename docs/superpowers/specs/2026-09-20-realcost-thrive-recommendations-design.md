@@ -1,9 +1,10 @@
 # RealCost — Thrive in 2026 Design Spec
 
 **Date:** 2026-09-20  
-**Status:** Approved design (balanced win condition D)  
+**Status:** Implemented in product (2026-09-21) — see `docs/10-documentation-history.md`  
+**Live:** https://realcost-xi.vercel.app/  
 **Frame:** Loop-first craft  
-**Horizon:** Next 90 days  
+**Horizon:** Next 90 days (craft shipped; distribution = Phase 2)  
 
 ---
 

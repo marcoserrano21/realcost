@@ -91,32 +91,42 @@ User preference: Settings → Motion (`system` / `full` / `reduced`) → `html[d
 
 ### Calculator (Home)
 
-- `ScreenHeader` + cash amount + weekly streak (flame when streak > 0)
-- Result reveal order: **hours → category → decision chips → ShareCard → Send**
-- After decide: secondary blocks collapse; choice locked on Home (edit in History)
+- `WeeklyStreak` above `ScreenHeader`; centered `CashAmountField` (width grows with digits)
+- Result reveal order: **hours → life-span gloss (≥24h) → category → decision chips → ShareCard → Send**
+- Decision chips use choice accents: Bought = success green, Thinking = action cobalt, Skipped = champagne
+- After decide: secondary blocks collapse; choice locked on Home (edit / recategorize in History)
+- Haptics on reveal settle, decision commit, share success (`haptics.ts`)
 
 ### Share card (`ShareCard.tsx`)
 
-- Fixed 4:5 aspect; brand small; hours large; never wage
+- Formats via `shareFormats.ts`: **4:5 poster**, **9:16 story**, **dual challenge**
+- Floating format pill (Post / Story) when not locked to dual or hours-kept
+- Hours large; brand small; never wage; optional life-span gloss on PNG
+- Variants: `standard` · `hoursKept` (“I kept N hours…”) · dual after both sides have hours
 - Dedicated light + dark `--share-*` surfaces (not app chrome tokens)
-- Canvas PNG export mirrors theme (`shareImage.ts`)
+- Canvas PNG export mirrors theme + format (`shareImage.ts`)
 - Native share sheet via `nativeShare.ts` (abort ≠ clipboard success)
 
 ### Shared tab (`/feed`)
 
 - Sections: Waiting / Seen·replied / Received
+- Cards show note + peer name; price locked (no inline edit); no week / “Roommates” chrome
+- Dual challenge unlock when `isChallengeComplete` (both sides’ hours)
 - History-style pagination when >10 items
 - Honesty banner for on-device reactions
 
 ### History
 
 - Filters accordion; `CompactSelect` for Sort/Date (animated chevron)
-- Category heat map; tappable cards; choice chips + share/delete row alignment
-- Skipped = pause icon; Bought = check; Thinking = clock
+- Recategorize from entry actions (not share-from-history)
+- Category heat map: **all categories**; metric menu **kept / thinking / spent** (opaque dropdown)
+- Skipped = pause (champagne); Bought = check (success); Thinking = clock (action)
 
 ### Tab bar
 
 - Floating glass pill (`backdrop-filter`, rounded 22px, inset from edges)
+- Bottom offset: `16px + env(safe-area-inset-bottom)` for iPhone home indicator
+- Root layout: `viewportFit: "cover"` so safe-area insets apply
 - Home / Shared / History / Settings; hidden pre-onboard, `/c`, `/legal`
 
 ### Settings
@@ -124,9 +134,10 @@ User preference: Settings → Motion (`system` / `full` / `reduced`) → `html[d
 - Rate, units, Look & feel (theme + motion), Sharing Private/Exact, danger zone
 - Exact mode: confirm dialog before enabling hours-in-link
 
-### Loading
+### Loading / install
 
 - `BounceLoader` — champagne → cobalt bouncing dots on boot / Suspense
+- `InstallPrompt` — soft A2HS after share peak or meaningful Skipped (≥1h kept); legacy ≥3 decisions
 
 ---
 
@@ -212,7 +223,6 @@ Use for brand boards, deck backgrounds, and marketing stills — ink/cobalt/cham
 
 | Question | Direction |
 |----------|-----------|
-| Custom share card themes (paid?) | Phase 3+; MVP ships one editorial card |
-| Animation on hour count-up | Tempting but may feel gimmicky — defer |
-| Category chip iconography | Text-only for MVP; icons add noise |
+| Custom share card themes (paid?) | Phase 3+; MVP ships poster / story / dual formats |
+| Category chip iconography | Compact text chips; deselect by re-tap |
 | Desktop layout | Mobile-first; desktop gets max-width container, not separate design |

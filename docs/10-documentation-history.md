@@ -4,13 +4,35 @@ Change log and source-of-truth hierarchy for RealCost project documentation.
 
 **Handoff note for reviewers (ChatGPT / Claude):** Read this file first for *what shipped and why*, then `00-product-vision.md` → `01-architecture.md` → `08-security-privacy.md` → current code under `src/`. Prefer code over docs when they diverge; call out drift.
 
+**Live:** [https://realcost-xi.vercel.app/](https://realcost-xi.vercel.app/)
+
 ---
 
 ## Context / Problem
 
-RealCost is a privacy-first web MVP: price → hours of life, share/compare without accounts or bank links. It evolved from a locked MVP spec through polish + growth loops in September 2026. Without documented history, reviewers cannot tell **what was decided, when, and why**.
+RealCost is a privacy-first web MVP: price → hours of life, share/compare without accounts or bank links. It evolved from a locked MVP spec through polish + thrive craft in September 2026. Without documented history, reviewers cannot tell **what was decided, when, and why**.
 
 This file tracks both **doc evolution** and a **product implementation changelog** suitable for external review.
+
+---
+
+## Product changelog (code) — 2026-09-21
+
+| Area | What shipped | Notes |
+|------|----------------|-------|
+| **Thrive craft (1–7)** | Share formats 2.0, `/c` ritual, hours kept, haptics, peak A2HS, challenge dual, demote budget gravity | Spec: `docs/superpowers/specs/2026-09-20-realcost-thrive-recommendations-design.md` |
+| **Share formats** | Poster 4:5 · Story 9:16 · Dual challenge | `shareFormats.ts`, floating Post/Story pill |
+| **Life-span gloss** | Secondary calendar caption ≥24h | `formatLifeSpan` + `LifeSpanGloss` on Result / Share / History |
+| **Choice accents** | Home chips + DecisionSheet match History icons | Bought success · Thinking action · Skipped champagne |
+| **Shared cards** | Note + peer name; locked price; no week / Roommates chrome | Feed density cleanup |
+| **History** | Recategorize (`updateLogCategory`); heat all categories; metric menu kept/thinking/spent | Opaque spaced dropdown |
+| **iOS TabBar** | `viewportFit: cover` + `safe-area-inset-bottom` | Clears home indicator |
+| **CashAmountField** | Centered; width grows with digits | |
+| **Prod deploy** | Live on Vercel | https://realcost-xi.vercel.app/ |
+
+### Docs sync (same day)
+
+README, vision, architecture, design system, journeys, phases, analytics, QA, and this changelog updated to match shipped code. Phase 1 marked done; Phase 2 (distribution) is next. Hours Budget remains docs-only.
 
 ---
 
@@ -50,7 +72,7 @@ Architecture, journeys, design system, QA, security, brand, phases, README updat
 | **Reaction loop** | Share links carry opaque `s=` id; recipient **React: send hours back** via `reply=1`; sender **Shared** shows **Seen** | No wage in URL; no server; reaction applies when opener has matching Sent `shareId` on-device |
 | **Friend challenge** | Dual hours on ShareCard / PNG when peer hours exist | |
 | **Decision sheet** | Primary CTA **Send this price** (one-tap reshare) | |
-| **A2HS** | After **3 decisions**, install / Add to Home Screen prompt; `manifest` + `icon` | Dismiss persisted; no account |
+| **A2HS** | Install / Add to Home Screen prompt; `manifest` + `icon` | Later moved to emotional peak (share / Skipped); dismiss persisted; no account |
 | **Compare card density** | Compact money fields / edit panel heights on Shared | |
 | **Figma MCP rules** | `docs/figma-design-system-rules.md` | Tokens = ink / cobalt / champagne |
 
@@ -62,6 +84,7 @@ Architecture, journeys, design system, QA, security, brand, phases, README updat
 | `realcost:comparisons[].seenAt` | Friend opened / replied |
 | `realcost:comparisons[].myRate` | Receiver’s rate (device-local) |
 | `realcost:a2hs_dismissed` | Install prompt dismissed |
+| `realcost:a2hs_peak` | Peak reason `share` \| `skipped` (2026-09-21) |
 
 ### Share URL params
 
@@ -74,7 +97,7 @@ Architecture, journeys, design system, QA, security, brand, phases, README updat
 
 ### Analytics events (new)
 
-`share_image_started`, `share_image_completed`, `reaction_sent`, `reaction_received`, `a2hs_prompt_shown`, `a2hs_dismissed`, `a2hs_choice` — still sanitized (no wage/name).
+`share_image_started`, `share_image_completed`, `reaction_sent`, `reaction_received`, `a2hs_prompt_shown`, `a2hs_dismissed`, `a2hs_choice` — still sanitized (no wage/name). Share events may include safe `privacy` / `challenge` / `format` props.
 
 ---
 
@@ -88,7 +111,9 @@ Architecture, journeys, design system, QA, security, brand, phases, README updat
 | **2026-09-17** | Figma atmosphere shader | Brand asset ID `5a52d4a4-77bb-46e6-b8be-a41417a5d330` |
 | **2026-09-17** | Docs expanded to case-study quality | Full `docs/` set |
 | **2026-09-19** | UX polish + docs sync | Shared tab, glass TabBar, Private/Exact docs, Home motion, BounceLoader |
-| **2026-09-18** | Growth / retention loop sprint | Streak, image share, reactions, heat map, A2HS, challenge poster; this handoff section |
+| **2026-09-18** | Growth / retention loop sprint | Streak, image share, reactions, heat map, A2HS, challenge poster |
+| **2026-09-20** | Thrive design + implementation plan | Loop-first craft recommendations 1–7 |
+| **2026-09-21** | Thrive craft shipped + docs sync | Formats, hours kept, haptics, peak install, gloss, heat lenses, safe-area, prod URL |
 
 ---
 
@@ -122,22 +147,23 @@ Every doc should trace back to this question.
 
 | Doc | Version note |
 |-----|--------------|
-| `00-product-vision.md` | Expanded with approach, artifacts, risks |
-| `01-architecture.md` | Expanded with data flow, storage keys, routes |
-| `02-design-system.md` | Expanded with component patterns, a11y |
-| `03-brand-guidelines.md` | Expanded with voice matrix, share rules |
-| `04-user-personas.md` | **Rewritten:** 5 personas, ages 24–36 |
-| `05-user-journeys.md` | Expanded with analytics mapping |
-| `06-behavioral-science.md` | Expanded with tone research, guardrails |
-| `07-marketing-growth.md` | Expanded with funnel, channels, gates |
-| `08-security-privacy.md` | **Rewritten:** full audit (Critical / Hardening / Success-enablers) |
-| `09-phases-timeline.md` | Expanded with gates and kill criteria |
-| `10-documentation-history.md` | This file (handoff + product changelog) |
-| `11-analytics.md` | Expanded with event schemas, sink swap |
-| `12-qa-checklist.md` | Expanded with journey-based scenarios |
-| `13-engineering-standards.md` | Expanded with patterns, anti-patterns |
-| `14-business-monetization.md` | Expanded with gates, hypotheses |
-| `figma-design-system-rules.md` | MCP / Figma token mapping for RealCost |
+| `00-product-vision.md` | Synced 2026-09-21 — thrive capabilities + live URL |
+| `01-architecture.md` | Synced 2026-09-21 — new libs, storage keys, data flow |
+| `02-design-system.md` | Synced 2026-09-21 — formats, accents, safe-area |
+| `03-brand-guidelines.md` | Voice + share object rules |
+| `04-user-personas.md` | Five personas, ages 24–36 |
+| `05-user-journeys.md` | Synced 2026-09-21 — thrive journeys |
+| `06-behavioral-science.md` | Tone research, guardrails |
+| `07-marketing-growth.md` | Funnel, channels, gates |
+| `08-security-privacy.md` | Critical / Hardening / Success-enablers |
+| `09-phases-timeline.md` | Synced 2026-09-21 — Phase 1 done; Phase 2 next |
+| `10-documentation-history.md` | This file |
+| `11-analytics.md` | Synced 2026-09-21 — full event catalog |
+| `12-qa-checklist.md` | Synced 2026-09-21 — thrive QA items |
+| `13-engineering-standards.md` | Patterns, anti-patterns |
+| `14-business-monetization.md` | Hours Budget still docs-only / gated |
+| `figma-design-system-rules.md` | MCP / Figma token mapping |
+| `superpowers/specs/2026-09-20-…` | Thrive design — **implemented** |
 
 ---
 
@@ -145,12 +171,12 @@ Every doc should trace back to this question.
 
 Please evaluate and give concrete feedback on:
 
-1. **Hypothesis fit** — Do streak / A2HS / image share strengthen the compare loop, or distract?
+1. **Hypothesis fit** — Do streak / A2HS / image share / challenge dual strengthen the compare loop, or distract?
 2. **Privacy** — Is `reply` hours + Exact mode messaging clear enough? Any wage-leak path we missed?
-3. **Retention honesty** — Streak is local-only; does UX overclaim “social” reactions?
-4. **UX density** — Shared compact cards; Home streak placement; install prompt timing (3 decisions).
-5. **Ship readiness** — Gaps before Vercel prod (OG image asset, real analytics sink, CSP).
-6. **Kill criteria** — What would prove the share → react loop failed after 2 weeks live?
+3. **Retention honesty** — Streak and hours kept are local-only; does UX overclaim “social” reactions?
+4. **UX density** — Shared compact cards; Home streak placement; peak install timing.
+5. **Ship readiness** — Gaps before broader marketing (OG image asset, real analytics sink, CSP).
+6. **Kill criteria** — What would prove the share → react loop failed after 2 weeks of Phase 2 content?
 
 ---
 
@@ -184,6 +210,7 @@ Please evaluate and give concrete feedback on:
 | Security audit in docs | Not a separate confidential PDF — transparent review |
 | README as index | Single entry point with role-based routing |
 | Reactions without a server | Opaque `s=` + reply link; honest about same-device / open-link requirement |
+| Thrive before Hours Budget | Spec + phases document the gate explicitly |
 
 ---
 
@@ -202,7 +229,7 @@ Documentation succeeds when:
 
 | Risk | Mitigation |
 |------|------------|
-| Docs drift from code | Phase 1 exit: doc-code review pass |
+| Docs drift from code | Update on phase gates + after major craft sprints |
 | SPEC.md vs docs/ duplication | SPEC = scope lock; docs = operating context |
 | Over-documentation slows shipping | Update on phase gates, not every commit |
 | Reaction loop feels “broken” if friend never opens reply link | Copy frames it as send-back; optional future lightweight ping API |
@@ -216,5 +243,5 @@ Documentation succeeds when:
 - [ ] After Phase 2 experiments: append funnel learnings to `07-marketing-growth.md`
 - [ ] After analytics sink swap: document vendor in `11-analytics.md`
 - [ ] After CSP deploy: close H-01 in `08-security-privacy.md`
-- [ ] Sync `01-architecture.md` storage key table with `shareId` / `seenAt` / A2HS
+- [x] Sync architecture storage keys with `shareId` / `seenAt` / A2HS peak
 - [ ] If personas validated in interviews: note evidence in `04-user-personas.md`

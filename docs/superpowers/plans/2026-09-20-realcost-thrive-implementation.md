@@ -1,6 +1,8 @@
 # RealCost Thrive 2026 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status (2026-09-21):** Implemented and live at https://realcost-xi.vercel.app/. Keep this plan as historical task detail; prefer `docs/10-documentation-history.md` + current `src/` for what shipped. Follow-on polish (life-span gloss, choice accents, heat lenses, TabBar safe-area) is documented in the 2026-09-21 changelog.
+
+> **For agentic workers (historical):** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship the seven loop-first-craft moves from the thrive design spec so RealCost’s share object, recipient ritual, Skipped identity, haptics, install timing, 1:1 challenges, and anti-budget focus are production-ready without accounts or Hours Budget UI.
 

@@ -4,6 +4,8 @@ Operating handbook and **presentation-ready case study** for building, shipping,
 
 **Thesis:** Same money. Different reality.
 
+**Live:** [https://realcost-xi.vercel.app/](https://realcost-xi.vercel.app/)
+
 ---
 
 ## Start Here
@@ -22,22 +24,23 @@ Operating handbook and **presentation-ready case study** for building, shipping,
 
 | Doc | Title | Audience | Summary |
 |-----|-------|----------|---------|
-| [00](./00-product-vision.md) | **Product Vision** | Founder / PM | Hypothesis, north star, MVP scope, non-goals |
+| [00](./00-product-vision.md) | **Product Vision** | Founder / PM | Hypothesis, north star, MVP + thrive scope, non-goals |
 | [01](./01-architecture.md) | **Architecture** | Engineering | Next 16 stack, routes, storage keys, Private/Exact share |
-| [02](./02-design-system.md) | **Design System** | Design | Tokens, glass TabBar, ShareCard themes, motion |
+| [02](./02-design-system.md) | **Design System** | Design | Tokens, glass TabBar, ShareCard formats, motion, accents |
 | [03](./03-brand-guidelines.md) | **Brand Guidelines** | Brand | Voice, share object rules, positioning |
 | [04](./04-user-personas.md) | **User Personas** | Research | Five personas (24–36) with design implications |
 | [05](./05-user-journeys.md) | **User Journeys & Flows** | UX | Onboard → calc → share → `/c` → Shared inbox |
 | [06](./06-behavioral-science.md) | **Behavioral Science** | Psychology | Salience, comparison, tone guardrails |
 | [07](./07-marketing-growth.md) | **Marketing & Growth** | Growth | Hooks, funnel, launch sequence |
 | [08](./08-security-privacy.md) | **Security & Privacy Audit** | Security | Critical / Hardening / Success-enablers |
-| [09](./09-phases-timeline.md) | **Phases & Timeline** | Program | Phase 0–4 gates, kill criteria |
+| [09](./09-phases-timeline.md) | **Phases & Timeline** | Program | Phase 0–4 gates; thrive craft shipped; Phase 2 next |
 | [10](./10-documentation-history.md) | **Documentation History** | Ops | Changelog, source-of-truth order |
 | [11](./11-analytics.md) | **Analytics Spec** | Data | Privacy-safe events, funnel, sink |
 | [12](./12-qa-checklist.md) | **QA Checklist** | QA | Journey QA + Critical privacy gates |
 | [13](./13-engineering-standards.md) | **Engineering Standards** | Engineering | TypeScript, a11y, privacy code review |
 | [14](./14-business-monetization.md) | **Business & Monetization** | Business | $0 MVP; Hours Budget = docs-only plan |
 | [Figma](./figma-design-system-rules.md) | **Figma MCP rules** | Design/Eng | Token mapping, no-emoji icons |
+| [Thrive spec](./superpowers/specs/2026-09-20-realcost-thrive-recommendations-design.md) | **Thrive design** | Product | Loop-first craft recommendations (shipped) |
 
 ---
 
@@ -45,10 +48,15 @@ Operating handbook and **presentation-ready case study** for building, shipping,
 
 | Attribute | Detail |
 |-----------|--------|
-| **Core mechanic** | Price → hours (via take-home hourly rate) |
+| **Core mechanic** | Price → hours (via take-home hourly rate); calendar gloss ≥24h |
 | **Tabs** | Home · **Shared** · History · Settings |
 | **Share** | **Private** (default): price only · **Exact** (opt-in): price + hours · **never wage** |
+| **Share formats** | 4:5 poster · 9:16 story · dual “challenge” after both sides have hours |
+| **Hours kept** | Skipped totals (week / all-time) + shareable identity card |
 | **Shared inbox** | Waiting / Seen / Received; reactions via opaque `s=` + `reply=1` |
+| **History** | Filters, recategorize, heat map lenses (kept / thinking / spent) |
+| **Craft** | Haptics on reveal/decide/share; choice accents; iOS safe-area TabBar |
+| **Install** | Soft A2HS after share or meaningful Skipped (legacy ≥3 decisions) |
 | **Stack** | Next.js 16.3 App Router, React 19, TypeScript, Tailwind v4, shadcn/ui |
 | **Persistence** | `localStorage` — no user backend |
 | **Hypothesis** | Share → recipient completes → recipient re-shares / reacts |
