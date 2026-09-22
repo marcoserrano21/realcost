@@ -168,7 +168,8 @@ All CTAs lead to **action** (enter price / open link), not “Install now.”
 | Share URL structure | No wage — safe to paste anywhere |
 | OG tags | Link preview sells the question |
 | Shared tab | Sender retention, not viral — secondary metric |
-| Four tones | Content creators can demo personality variants |
+| Five tones | Content creators can demo personality variants |
+| Share video | Stories/Reels-friendly reel export beside PNG |
 | `$0 infra` | Experiment freely on Vercel free tier |
 
 ---

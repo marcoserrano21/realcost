@@ -28,12 +28,14 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 
 - [ ] Fresh browser (no localStorage) shows welcome/setup flow
 - [ ] Can complete setup in ≤ 4 screens without account
+- [ ] Wage range chips (`$15–20` … `$35+` / Custom) store midpoint; Custom accepts exact rate
 - [ ] Default wage allows preview calculation if user skips ahead
-- [ ] All four tones selectable; persists after reload
+- [ ] All five tones selectable (incl. Deadpan); persists after reload
 - [ ] Spending focus selection persists
 - [ ] Optional name saves locally; not required to proceed
 - [ ] `onboarding_completed` fires once (dev console)
 - [ ] After setup, lands on Home with price field focusable
+- [ ] Settings can edit exact hourly rate after a bucket was chosen
 
 ---
 
@@ -55,8 +57,10 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 - [ ] Skipped decision shows weekly pause / hours-kept summary when applicable
 - [ ] Weekly streak + flame chip render when streak > 0 (above header)
 - [ ] ShareCard readable in light and dark; Post / Story format toggle works
-- [ ] Reduce motion: hours digits update (not stuck at 00m); haptics suppressed
+- [ ] Save / share video appears for standard cards when motion allowed; falls back to PNG when reduced-motion
+- [ ] Reduce motion: hours digits update (not stuck at 00m); haptics suppressed; video CTA hidden or PNG fallback
 - [ ] `calculation_created` and `decision_*` events fire
+- [ ] `share_video_*` events (when used) carry no wage/rate props
 
 ---
 
@@ -84,6 +88,7 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 
 - [ ] Valid link opens comparison view; tab bar hidden
 - [ ] OG / page framing reads as a challenge, not a download pitch
+- [ ] Median benchmark teaser shows instantly before wage entry (local constant; no new URL param)
 - [ ] Private links: recipient enters wage → own hours for price
 - [ ] Exact links: sender hours visible; recipient can compare
 - [ ] Legacy `n=` ignored if present

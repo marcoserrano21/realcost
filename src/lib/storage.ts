@@ -18,7 +18,7 @@ export type SpendingFocus =
   | "impulse"
   | "unsure";
 
-export type Tone = "gentle" | "direct" | "hype" | "curious";
+export type Tone = "gentle" | "direct" | "hype" | "curious" | "deadpan";
 
 export type PurchaseCategory =
   | "shopping"
@@ -59,7 +59,7 @@ export function getPersonalization(): Personalization | null {
   if (typeof window === "undefined") return null;
   const parsed = safeParse<Partial<Personalization>>(window.localStorage.getItem(PERSONALIZATION_KEY));
   if (!parsed) return null;
-  const tone = (["gentle", "direct", "hype", "curious"] as Tone[]).includes(parsed.tone as Tone)
+  const tone = (["gentle", "direct", "hype", "curious", "deadpan"] as Tone[]).includes(parsed.tone as Tone)
     ? (parsed.tone as Tone)
     : DEFAULT_PERSONALIZATION.tone;
   return {

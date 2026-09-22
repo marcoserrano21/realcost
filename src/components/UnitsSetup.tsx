@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { DEFAULT_UNITS, Units } from "@/lib/calc";
+import { useRef, useState } from "react";
+import { clampWage, DEFAULT_UNITS, Units } from "@/lib/calc";
 import {
   setName as setStoredName,
   setPersonalization,
 } from "@/lib/storage";
 import type { SpendingFocus, Tone } from "@/lib/storage";
+import {
+  formatBucketWage,
+  midpointForBucket,
+  WAGE_BUCKETS,
+  type WageBucketId,
+} from "@/lib/wageBuckets";
 import PersonalizationFields from "@/components/PersonalizationFields";
 import OnboardingCostPreview from "@/components/OnboardingCostPreview";
 import { track } from "@/lib/analytics";
 import { triggerHaptic } from "@/lib/haptics";
+import { sanitizeDecimalInput } from "@/lib/numericInput";
 
 const TOTAL_STEPS = 3;
 
@@ -22,23 +29,39 @@ export default function UnitsSetup({
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [wage, setWage] = useState("");
+  const [bucket, setBucket] = useState<WageBucketId | null>(null);
   const [name, setName] = useState("");
   const [spendingFocus, setSpendingFocus] = useState<SpendingFocus | null>(null);
   const [tone, setTone] = useState<Tone | null>(null);
+  const wageInputRef = useRef<HTMLInputElement>(null);
 
   const wageNum = parseFloat(wage);
   const canContinue = wageNum > 0;
   const canOpen = Boolean(name.trim()) && spendingFocus != null && tone != null;
   const progress = `${step + 1} of ${TOTAL_STEPS}`;
 
+  const handleBucketSelect = (id: WageBucketId) => {
+    triggerHaptic();
+    setBucket(id);
+    if (id === "custom") {
+      setWage("");
+      requestAnimationFrame(() => wageInputRef.current?.focus());
+      return;
+    }
+    const mid = midpointForBucket(id);
+    if (mid != null) setWage(formatBucketWage(mid));
+  };
+
   const finish = () => {
     if (!canOpen || spendingFocus == null || tone == null) return;
+    const safeWage = clampWage(wageNum);
+    if (!(safeWage > 0)) return;
     setStoredName(name.trim());
     setPersonalization({ spendingFocus, tone });
     triggerHaptic([10, 40, 14]);
     track("onboarding_completed", { tone, focus: spendingFocus });
     onDone({
-      hourlyWage: wageNum,
+      hourlyWage: safeWage,
       shiftHours: DEFAULT_UNITS.shiftHours,
       dinnerCost: DEFAULT_UNITS.dinnerCost,
       dinnerLabel: DEFAULT_UNITS.dinnerLabel,
@@ -91,20 +114,50 @@ export default function UnitsSetup({
               <div className="eyebrow">Your private baseline</div>
               <h1 id="onboarding-title">What does one hour of your work bring home?</h1>
               <p className="onboarding-copy">
-                Use your take-home rate. It stays on this device and powers every calculation.
+                Pick a range or enter an exact take-home rate. It stays on this device.
               </p>
-              <label className="field-label" htmlFor="hourly-wage">
-                Take-home hourly rate
+              <label className="field-label" id="wage-bucket-label">
+                Take-home range
               </label>
+              <div
+                className="chip-grid chip-grid-compact"
+                role="group"
+                aria-labelledby="wage-bucket-label"
+              >
+                {WAGE_BUCKETS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={`chip chip-compact pressable${bucket === option.id ? " chip-selected" : ""}`}
+                    aria-pressed={bucket === option.id}
+                    onClick={() => handleBucketSelect(option.id)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              {bucket && bucket !== "custom" ? (
+                <label className="field-label" htmlFor="hourly-wage">
+                  Using midpoint — edit exact rate anytime in Settings
+                </label>
+              ) : (
+                <label className="field-label" htmlFor="hourly-wage">
+                  Exact take-home hourly rate
+                </label>
+              )}
               <div className="money-field">
                 <span aria-hidden="true">$</span>
                 <input
                   id="hourly-wage"
-                  autoFocus
+                  ref={wageInputRef}
+                  autoFocus={bucket === "custom" || bucket === null}
                   inputMode="decimal"
                   placeholder="15.00"
                   value={wage}
-                  onChange={(event) => setWage(event.target.value)}
+                  onChange={(event) => {
+                    setBucket("custom");
+                    setWage(sanitizeDecimalInput(event.target.value));
+                  }}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && canContinue) goForward(2);
                   }}
@@ -113,7 +166,7 @@ export default function UnitsSetup({
                 <span>/ hr</span>
               </div>
               <p className="field-note" id="wage-note">
-                No account. No bank link. No data leaves your browser.
+                No account. No bank link. Edit your exact rate later in Settings.
               </p>
               <div className="onboarding-actions">
                 <button type="button" className="secondary-action pressable" onClick={goBack}>

@@ -3,7 +3,13 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { computeRealCost, formatHours, formatMoney } from "@/lib/calc";
+import {
+  benchmarkHoursForPrice,
+  computeRealCost,
+  formatHours,
+  formatMoney,
+  US_MEDIAN_HOURLY_WAGE,
+} from "@/lib/calc";
 import { clampWage } from "@/lib/limits";
 import {
   addComparisonEntry,
@@ -207,7 +213,18 @@ export default function CompareClient() {
               <>What does this cost in hours of your life?</>
             )}
           </p>
-          {!revealed ? <p className="text-[var(--subtle)] text-xs">{getCompareIntroCopy(tone)}</p> : null}
+          {!revealed ? (
+            <>
+              <p className="text-[var(--subtle)] text-xs tabular-nums">
+                At the US median hourly wage (~${US_MEDIAN_HOURLY_WAGE}/hr), this is{" "}
+                <span className="font-medium text-[var(--muted)]">
+                  {formatHours(benchmarkHoursForPrice(price))}
+                </span>
+                .
+              </p>
+              <p className="text-[var(--subtle)] text-xs">{getCompareIntroCopy(tone)}</p>
+            </>
+          ) : null}
         </div>
 
         {!revealed ? (
@@ -217,7 +234,7 @@ export default function CompareClient() {
               <input
                 autoFocus
                 inputMode="decimal"
-                placeholder="hourly take-home"
+                placeholder="your hourly take-home"
                 aria-label="Your hourly take-home rate"
                 value={wage}
                 onChange={(e) => onWageChange(e.target.value)}
@@ -225,7 +242,7 @@ export default function CompareClient() {
               <span>/ hr</span>
             </div>
             <p className="text-[var(--subtle)] text-xs text-center" style={{ margin: 0 }}>
-              Wage stays on this device. Never in the link.
+              Enter your rate to personalize. Wage stays on this device — never in the link.
             </p>
             <button type="button" disabled={!canReveal} onClick={handleReveal} className="primary-action pressable w-full">
               See my hours

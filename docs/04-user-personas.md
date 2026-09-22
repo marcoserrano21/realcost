@@ -241,9 +241,10 @@ Patio set shows **25h** for Alex. Spouse opens link — different job, different
 |-------------|-----------------|
 | Wage never in URL | All — especially Jordan, Alex |
 | <60s to first result | Maya, Devon (impulse moments) |
-| Four tone options | Priya (Gently), Jordan (Straight up), Devon (Hyped), Alex (Curious) |
+| Five tone options | Priya (Gently), Jordan (Straight up), Devon (Hyped), Alex (Curious), meme-native peers (Deadpan) |
 | Share card screenshot-ready | Maya, Devon, Priya |
-| `/c` side-by-side without account | Jordan, Alex |
+| Share video reel export | Devon (Stories/Reels), Maya |
+| `/c` median teaser before wage | Jordan, Alex — reduce cold-start bounce |
 | localStorage-only privacy story | All |
 
 ---

@@ -53,6 +53,8 @@ Enables dev tools or future debug panels without coupling to vendor SDK.
 | `share_completed` | Native share or clipboard success | `method`: `native` \| `clipboard`; `privacy`; `challenge` |
 | `share_image_started` | Save/share PNG started | `challenge`, `format`, `variant` |
 | `share_image_completed` | PNG export succeeded | `challenge`, `format`, `variant` |
+| `share_video_started` | Save/share video started | `challenge`, `format`, `variant` |
+| `share_video_completed` | Video export succeeded (or PNG fallback completed) | `challenge`, `format`, `variant` |
 | `comparison_opened` | Valid `/c` params loaded | — |
 | `recipient_calculation_completed` | Recipient enters rate and sees result | — |
 | `recipient_shared` | Recipient shares their card | — |

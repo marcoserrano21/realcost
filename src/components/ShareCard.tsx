@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatHours, formatMoney } from "@/lib/calc";
 import { downloadShareImage } from "@/lib/shareImage";
+import { downloadShareVideo, shouldExportShareVideo } from "@/lib/shareVideo";
 import { aspectClassForFormat, type ShareCardFormat } from "@/lib/shareFormats";
 import { track } from "@/lib/analytics";
 import LifeSpanGloss from "@/components/LifeSpanGloss";
@@ -25,12 +26,28 @@ export default function ShareCard({
 }) {
   const cardRef = useRef<HTMLElement>(null);
   const [saving, setSaving] = useState(false);
+  const [savingVideo, setSavingVideo] = useState(false);
+  const [videoAvailable, setVideoAvailable] = useState(false);
   const challenge = variant !== "hoursKept" && typeof compareHours === "number" && compareHours > 0;
   const [format, setFormat] = useState<ShareCardFormat>(() => (challenge ? "dual" : "poster45"));
   const activeFormat: ShareCardFormat = challenge || variant === "hoursKept" ? (challenge ? "dual" : "poster45") : format;
   const ofWork = label ? `of ${label}'s life` : "of my life";
   const dualTitle = `Same ${formatMoney(price)}. Different lives.`;
   const thumbIndex = activeFormat === "story916" ? 1 : 0;
+
+  useEffect(() => {
+    setVideoAvailable(
+      shouldExportShareVideo({
+        price,
+        hours,
+        label,
+        compareHours,
+        compareLabel,
+        format: activeFormat,
+        variant,
+      })
+    );
+  }, [price, hours, label, compareHours, compareLabel, activeFormat, variant]);
 
   const saveImage = async () => {
     setSaving(true);
@@ -48,6 +65,25 @@ export default function ShareCard({
       if (ok) track("share_image_completed", { challenge, format: activeFormat, variant });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveVideo = async () => {
+    setSavingVideo(true);
+    track("share_video_started", { challenge, format: activeFormat, variant });
+    try {
+      const ok = await downloadShareVideo({
+        price,
+        hours,
+        label,
+        compareHours,
+        compareLabel,
+        format: activeFormat,
+        variant,
+      });
+      if (ok) track("share_video_completed", { challenge, format: activeFormat, variant });
+    } finally {
+      setSavingVideo(false);
     }
   };
 
@@ -143,9 +179,19 @@ export default function ShareCard({
           <p className="share-card-cta">What does it cost you?</p>
         </footer>
       </article>
-      <button type="button" className="secondary-action pressable share-save-image" onClick={() => void saveImage()} disabled={saving}>
+      <button type="button" className="secondary-action pressable share-save-image" onClick={() => void saveImage()} disabled={saving || savingVideo}>
         {saving ? "Preparing…" : "Save / share image"}
       </button>
+      {videoAvailable ? (
+        <button
+          type="button"
+          className="secondary-action pressable share-save-image"
+          onClick={() => void saveVideo()}
+          disabled={saving || savingVideo}
+        >
+          {savingVideo ? "Recording…" : "Save / share video"}
+        </button>
+      ) : null}
     </div>
   );
 }
