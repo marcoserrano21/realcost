@@ -45,7 +45,7 @@ Use these as north stars for headlines, share copy, and deck slides:
 
 ### Tone settings (in-product)
 
-RealCost adapts copy via four tones — same math, different emotional lens:
+RealCost adapts copy via five tones — same math, different emotional lens:
 
 | Tone | Voice | Example energy |
 |------|-------|----------------|
@@ -53,8 +53,9 @@ RealCost adapts copy via four tones — same math, different emotional lens:
 | **Straight up** | Minimal, clear | “Logged.” / “Skipped.” |
 | **Hyped** | Agency, celebration | “Treat secured.” / “That's a win.” |
 | **Curious** | Reflective questions | “What made it feel worth it?” |
+| **Deadpan** | Dry, internet-native | “Bro really said yes to 6h.” / “Declined.” |
 
-Brand voice outside the app (marketing, social) should default to **Straight up + Curious** — never Hyped by default in ads.
+Brand voice outside the app (marketing, social) should default to **Straight up + Curious** — never Hyped or Deadpan by default in ads.
 
 ---
 
@@ -158,7 +159,7 @@ Shopping · Food · Subscriptions · Entertainment · Travel · Tech · Others
 | Artifact | Brand decision |
 |----------|----------------|
 | Share URL copy | Question-led, not app-download-led |
-| Four tones | Personalization without moral frames |
+| Five tones | Personalization without moral frames |
 | Shared tab rename | Honest inbox naming builds trust |
 | Private-by-default links | Privacy as brand, not fine print |
 | No public profiles | Brand avoids social-network baggage |

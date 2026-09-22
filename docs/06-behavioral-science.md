@@ -62,9 +62,9 @@ People naturally compare outcomes with peers. RealCost channels this through **s
 
 ---
 
-## Tone Research — Four Lenses
+## Tone Research — Five Lenses
 
-RealCost ships four tone settings. Each maps to a different emotional regulation strategy:
+RealCost ships five tone settings. Each maps to a different emotional regulation strategy:
 
 | Tone | Psychological lens | Intended effect |
 |------|-------------------|-----------------|
@@ -72,6 +72,7 @@ RealCost ships four tone settings. Each maps to a different emotional regulation
 | **Straight up** | Cognitive load reduction | Keeps number hero; minimal emotional overlay |
 | **Hyped** | Behavioral activation | Celebrates intentional choice and skipped wins |
 | **Curious** | Motivational interviewing | Open questions; no prescriptions |
+| **Deadpan** | Mild self-deprecation / meme fluency | Diffuses tension about the *purchase* without attacking the person |
 
 ### Example — Skipped decision
 
@@ -80,9 +81,10 @@ RealCost ships four tone settings. Each maps to a different emotional regulation
 | Gently | “Nice pause.” | Validate without moralizing |
 | Straight up | “Skipped.” | Log and move on |
 | Hyped | “That's a win.” | Reinforce agency |
-| Curious | “What changed your mind?” | Prompt reflection |
+| Curious | “You passed.” | Prompt reflection |
+| Deadpan | “Declined.” | Dry closure; keep it light |
 
-Copy lives in `src/lib/copy.ts` — tone × choice matrix.
+Copy lives in `src/lib/copy.ts` / `copyMatrix.ts` — tone × choice matrix.
 
 ---
 

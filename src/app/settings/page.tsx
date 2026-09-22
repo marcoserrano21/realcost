@@ -172,7 +172,7 @@ export default function SettingsPage() {
       <PageEnter className="w-full max-w-sm flex flex-col gap-4 items-center">
         <ScreenHeader title="Settings" />
 
-        <SettingsSection title="Your rate" description="Powers every RealCost calculation on this device.">
+        <SettingsSection title="Your rate" description="Powers every RealCost calculation on this device. Edit your exact hourly rate anytime.">
           <label className="field-label" htmlFor="settings-wage">
             Take-home hourly
           </label>

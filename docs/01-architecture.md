@@ -55,13 +55,15 @@ Agent note: this Next.js version differs from older training defaults — check 
 
 | Layer | Responsibility | Location |
 |-------|----------------|----------|
-| **Calculation** | Pure price → hours / shifts / dinners | `src/lib/calc.ts` |
+| **Calculation** | Pure price → hours / shifts / dinners; US median benchmark helper | `src/lib/calc.ts` |
 | **Formatting** | Duration, money, life-span gloss | `src/lib/calc.ts` (`formatHours`, `formatLifeSpan`) |
 | **Storage** | Units, log, comparisons, personalization, welcome, A2HS | `src/lib/storage.ts` |
 | **Sharing** | Encode/decode URL payloads; share copy | `src/lib/sharing.ts` |
 | **Share privacy** | Private vs Exact mode | `src/lib/sharePrivacy.ts` |
 | **Share formats** | Poster 4:5 / Story 9:16 / Dual canvas sizes | `src/lib/shareFormats.ts` |
 | **Share image** | Canvas PNG (standard, hoursKept, challenge) | `src/lib/shareImage.ts` |
+| **Share video** | Canvas MediaRecorder reel reveal (WebM / MP4 when supported) | `src/lib/shareVideo.ts`, `shareVideoCore.ts` |
+| **Wage buckets** | Onboarding range midpoints → `hourlyWage` | `src/lib/wageBuckets.ts` |
 | **Native share** | `navigator.share` → clipboard; cancel ≠ success | `src/lib/nativeShare.ts` |
 | **Hours kept** | Skipped totals (week / all-time) | `src/lib/hoursKept.ts` |
 | **Streaks / week** | Mon–Sun paused hours + week streak | `src/lib/streaks.ts`, `src/lib/week.ts` |
@@ -72,7 +74,7 @@ Agent note: this Next.js version differs from older training defaults — check 
 | **Compare OG** | Challenge-framed link preview copy | `src/lib/compareOg.ts` |
 | **Preferences** | Theme + reduce-motion → `html` attributes | `src/lib/preferences.ts` |
 | **Analytics** | Privacy-safe event queue + sink | `src/lib/analytics.ts` |
-| **Copy** | Tone-aware UX writing | `src/lib/copy.ts` |
+| **Copy** | Tone-aware UX writing (5 tones incl. Deadpan) | `src/lib/copy.ts`, `copyMatrix.ts` |
 | **UI** | Presentation only | `src/components/*`, `src/app/*` |
 
 ### Calculation contract
@@ -122,7 +124,7 @@ Custom events: `realcost:units-updated`, `realcost:preferences-updated`, `realco
 | `/feed` | **Shared** tab — local comparison inbox | Waiting / Seen / Received; challenge dual unlock; route path legacy |
 | `/history` | Decision history | Filters, recategorize, heat map metric menu |
 | `/settings` | Rate, units, look & feel, sharing mode, reset | Exact mode uses confirm dialog |
-| `/c` | Recipient / challenge / reaction flow | URL-driven; **no TabBar** |
+| `/c` | Recipient / challenge / reaction flow | Instant median benchmark teaser; URL-driven; **no TabBar** |
 | `/legal/privacy`, `/legal/terms` | Legal | `LegalShell` |
 
 ### Share payload (`encodeComparison`)
@@ -149,7 +151,8 @@ Enforced in:
 
 - `sharing.ts` / `sharePrivacy.ts` — payload excludes wage; Private omits `h`
 - `analytics.ts` — strips keys matching `/wage|rate|email|name/i`
-- Share card / canvas PNG / OG — hours and price only (name local on card)
+- Share card / canvas PNG / video / OG — hours and price only (name local on card)
+- `/c` US median teaser uses a **local display constant** (`US_MEDIAN_HOURLY_WAGE`) — never encoded in the URL
 
 ---
 
@@ -163,7 +166,7 @@ Enforced in:
 | Digit reels | `DigitReels.tsx`, `HoursOdometer.tsx` | Hours hero; reduced-motion snaps |
 | LifeSpanGloss | `LifeSpanGloss.tsx` | Secondary calendar caption ≥24h |
 | WeeklyStreak | `WeeklyStreak.tsx` | Paused hours + flame + hours-kept share |
-| ShareCard | `ShareCard.tsx`, `shareFormats.ts` | Poster / Story / Dual; hoursKept variant |
+| ShareCard | `ShareCard.tsx`, `shareFormats.ts` | Poster / Story / Dual; hoursKept; PNG + video export |
 | DecisionSheet | `DecisionSheet.tsx` | Tone copy + choice accent borders |
 | CategoryHeatMap | `CategoryHeatMap.tsx` | All categories; kept / thinking / spent menu |
 | BounceLoader | `BounceLoader.tsx` | Boot / suspense wait |

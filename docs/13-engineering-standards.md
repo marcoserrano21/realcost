@@ -72,11 +72,11 @@ Use `"use client"` only where browser APIs or interactivity require it. Prefer s
 - Never import storage for auto-enrichment
 - Event union type exhaustive — add event = update type + docs
 
-### Copy (`copy.ts`)
+### Copy (`copy.ts` / `copyMatrix.ts`)
 
-- Tone × choice matrix data-driven
+- Tone × choice matrix data-driven (5 tones including `deadpan`)
 - No JSX — strings only
-- Uses format helpers from calc, not inline math
+- Uses format helpers from calc at the `getDecisionCopy` boundary, not inline math
 
 ---
 
@@ -122,8 +122,11 @@ Non-negotiable for every interactive PR:
 
 | Module | Test file | Min cases |
 |--------|-----------|-----------|
-| `calc.ts` | `calc-sharing.test.ts` | Basic hours, edge wages, formatting |
+| `calc.ts` | `calc-sharing.test.ts` | Basic hours, edge wages, formatting, median benchmark |
 | `sharing.ts` | `calc-sharing.test.ts` | Encode URL shape, decode validation, no wage param |
+| `wageBuckets.ts` | `wage-buckets.test.ts` | Midpoints, custom null, formatting |
+| `shareVideoCore.ts` | `share-video.test.ts` | MIME pick, duration, reduced-motion gate |
+| `copyMatrix.ts` | `copy-tone.test.ts` | All 5 tones × choices; Deadpan voice |
 
 ### Commands
 

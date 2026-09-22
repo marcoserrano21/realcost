@@ -204,7 +204,7 @@ Use for brand boards, deck backgrounds, and marketing stills — ink/cobalt/cham
 | Token table | Dual-theme from day one — no “dark mode later” |
 | Outfit font | Gen-Z premium without startup-playful excess |
 | Share card as designed object | Distribution creative is designed, not an afterthought |
-| Four tone cards in onboarding | Visual parity — no “default vs other” hierarchy |
+| Five tone cards in onboarding | Visual parity — no “default vs other” hierarchy |
 
 ---
 

@@ -28,6 +28,7 @@ export const PURCHASE_CATEGORY_OPTIONS: {
  * - direct: cognitive load reduction: plain facts, no persuasion theater
  * - hype: agency + positive reinforcement: celebrates intentional choice
  * - curious: motivational interviewing: Socratic questions invite reflection
+ * - deadpan: internet-native dryness; self-deprecating about the purchase, never the person
  */
 export const TONE_OPTIONS: {
   value: Tone;
@@ -58,5 +59,11 @@ export const TONE_OPTIONS: {
     label: "Curious",
     hint: "Ask, don’t tell",
     research: "Motivational-interviewing questions spark reflection without prescribing behavior.",
+  },
+  {
+    value: "deadpan",
+    label: "Deadpan",
+    hint: "Dry. A little online.",
+    research: "Mild self-deprecation about the purchase lowers shame while staying meme-shareable.",
   },
 ];

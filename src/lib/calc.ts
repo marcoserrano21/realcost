@@ -58,6 +58,21 @@ export const DEFAULT_UNITS: Units = {
   dinnerLabel: "dinner out",
 };
 
+/**
+ * Hardcoded US median hourly wage for /c teaser only.
+ * Never encoded in URLs, analytics, or share metadata — display constant.
+ */
+export const US_MEDIAN_HOURLY_WAGE = 22;
+
+/** Hours for a price at the US median wage. Local display only. */
+export function benchmarkHoursForPrice(price: number): number {
+  return computeRealCost(price, {
+    hourlyWage: US_MEDIAN_HOURLY_WAGE,
+    shiftHours: DEFAULT_UNITS.shiftHours,
+    dinnerCost: DEFAULT_UNITS.dinnerCost,
+  }).hours;
+}
+
 export type RealCostResult = {
   hours: number;
   shifts: number;

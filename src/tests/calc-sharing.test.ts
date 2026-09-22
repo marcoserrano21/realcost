@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { computeRealCost, formatHours, formatLifeSpan, formatMoney } from "../lib/calc.ts";
+import { computeRealCost, formatHours, formatLifeSpan, formatMoney, benchmarkHoursForPrice, US_MEDIAN_HOURLY_WAGE } from "../lib/calc.ts";
 import { decodeComparison, encodeComparison, shareText } from "../lib/sharing.ts";
 
 test("computeRealCost: basic hours", () => {
@@ -27,6 +27,12 @@ test("formatHours: hours and minutes", () => {
 
 test("formatHours: rounds 6.316h", () => {
   assert.equal(formatHours(6.316), "6h 19m");
+});
+
+test("benchmarkHoursForPrice uses US median constant only", () => {
+  assert.equal(US_MEDIAN_HOURLY_WAGE, 22);
+  assert.equal(benchmarkHoursForPrice(150), 150 / 22);
+  assert.equal(benchmarkHoursForPrice(22), 1);
 });
 
 test("private encode omits hours so wage cannot be reversed", () => {

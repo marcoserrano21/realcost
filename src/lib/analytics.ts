@@ -24,6 +24,8 @@ export type AnalyticsEvent =
   | "category_selected"
   | "share_image_started"
   | "share_image_completed"
+  | "share_video_started"
+  | "share_video_completed"
   | "reaction_sent"
   | "reaction_received"
   | "a2hs_prompt_shown"
