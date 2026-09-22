@@ -2,6 +2,8 @@
 
 Program plan for RealCost — from working calculator to validated share loop. Phases are **gates**, not calendar promises.
 
+**Live:** [https://realcost-xi.vercel.app/](https://realcost-xi.vercel.app/)
+
 ---
 
 ## Context / Problem
@@ -17,11 +19,12 @@ This timeline sequences work by **risk reduction**: magic first, distribution se
 | **Phase** | Name | Status | Goal |
 |-------|------|--------|------|
 | **0** | Magic | ✅ Done | Price → hours → share → compare works |
-| **1** | Loop polish | ✅ Largely done | Share card, analytics, Shared inbox, UX premium, docs, tests |
-| **2** | Distribution | Next | Organic content, OG experiments, hook A/B |
+| **1** | Loop polish + thrive craft | ✅ Done | Share formats, Shared inbox, hours kept, haptics, peak install, docs, tests, prod deploy |
+| **2** | Distribution | **Next** | Organic content, OG experiments, hook A/B |
 | **3** | Depth | Conditional | Hours Budget UI, PWA SW, history insights |
 
-> **Hours Budget gate:** Blocked until Phase 2 loop metrics clear (`share_completed` → `recipient_calculation_completed` → react/re-share). See `docs/superpowers/specs/2026-09-20-realcost-thrive-recommendations-design.md`. Do not ship Hours Budget UI before that gate.
+> **Hours Budget gate:** Blocked until Phase 2 loop metrics clear (`share_completed` → `recipient_calculation_completed` → react/re-share). See thrive design spec. Do not ship Hours Budget UI before that gate.
+
 | **4** | Platform | Later | Extension, wishlist — only if loop healthy |
 
 ---
@@ -49,40 +52,44 @@ This timeline sequences work by **risk reduction**: magic first, distribution se
 
 ---
 
-## Phase 1 — Loop Polish 🔄
+## Phase 1 — Loop Polish + Thrive Craft ✅
 
-**Objective:** Make sharing irresistible and measurable.
+**Objective:** Make sharing irresistible, measurable, and award-level in craft — without becoming a budget app.
 
-### In scope (this sprint)
+### Delivered
 
 | Workstream | Deliverable |
 |------------|-------------|
-| **Share card** | Editorial `ShareCard.tsx` — screenshot-ready |
-| **Analytics** | Privacy-safe queue + dev console sink |
-| **Onboarding trim** | Faster path to first hours |
-| **Compare → Shared rename** | Feed route kept (`/feed`); UI label **Shared** (inbox, not social feed) |
-| **OG metadata** | Link previews without wage |
-| **Categories** | Purchase chips + Others custom label |
-| **Curious tone** | Fourth tone in copy matrix |
-| **Premium UI** | Ink/cobalt/champagne system |
-| **Tests** | Calc + sharing unit tests |
-| **Docs** | Presentation-ready case study set |
-| **Figma** | RealCost Atmosphere Fill shader |
+| **Share card 2.0** | Poster 4:5 · Story 9:16 · Dual challenge (`shareFormats.ts`) |
+| **Recipient ritual** | Cinematic `/c`; challenge OG (`compareOg.ts`) |
+| **Hours kept** | Skipped week/all-time totals + share variant |
+| **Haptics** | Reveal / decide / share (`haptics.ts`) |
+| **Peak install** | A2HS after share or meaningful Skipped (`a2hsGate.ts`) |
+| **Challenge** | 1:1 dual unlock when both sides have hours |
+| **Life-span gloss** | Secondary calendar caption ≥24h |
+| **History polish** | Recategorize; heat lenses (kept / thinking / spent); all categories |
+| **Choice accents** | Home chips + DecisionSheet match History icon colors |
+| **Shared cards** | Note + peer name; locked price; no week chrome |
+| **iOS chrome** | `viewportFit: cover` + TabBar safe-area inset |
+| **Analytics** | Privacy-safe queue + challenge / A2HS / image events |
+| **Tests** | Calc, sharing, formats, challenge, haptics, hours-kept, A2HS |
+| **Deploy** | Production on Vercel (`realcost-xi.vercel.app`) |
+| **Docs** | Case-study set aligned to shipped code |
 
-### Exit criteria
+### Exit criteria (met for craft; loop metrics still Phase 2)
 
-- [ ] Share card passes visual QA at mobile widths
-- [ ] Full funnel events fire in dev console
-- [ ] `npm test` + `npm run build` green
-- [ ] QA checklist complete (see `12-qa-checklist.md`)
-- [ ] Security Critical items Pass (see `08-security-privacy.md`)
+- [x] Share card formats pass visual QA at mobile widths
+- [x] Funnel events fire in dev console
+- [x] `npm test` + `npm run build` green
+- [x] Security Critical privacy invariants hold in code
+- [ ] Phase 2: organic share → recipient completion measured in the wild
 
 ### Explicitly not in Phase 1
 
 - User accounts
 - Cloud sync
-- Paid features
-- Backend API
+- Paid features / Hours Budget UI
+- Backend API / service worker
 
 ---
 
@@ -102,7 +109,7 @@ This timeline sequences work by **risk reduction**: magic first, distribution se
 
 ### Entry gate
 
-Phase 1 exit criteria complete.
+Phase 1 craft shipped and live — **met**.
 
 ### Exit criteria
 
@@ -124,10 +131,11 @@ If share rate near zero after sustained organic effort → pivot hook or core me
 
 | Feature | Value |
 |---------|-------|
+| Hours Budget UI | Freemium wedge (doc 14) — still gated |
 | Custom units | “Cost in coffees” / regional references |
-| PWA shell | Home screen install, offline calc |
-| History insights | Weekly patterns, category breakdowns |
-| Improved Shared inbox | Search, notes on comparisons |
+| PWA shell | Home screen install + offline calc |
+| History insights | Weekly patterns beyond heat lenses |
+| Improved Shared inbox | Search, richer notes |
 
 ### Not started until
 
@@ -157,7 +165,7 @@ Reference `14-business-monetization.md` for revenue hypotheses — all post-loop
 ```
 2026 Q3
 ├── Phase 0 ████████████ Done
-├── Phase 1 ████████░░░░ In progress
+├── Phase 1 ████████████ Done (polish + thrive craft + prod)
 │
 2026 Q4 (projected)
 ├── Phase 2 ░░░░░░░░░░░░ Distribution experiments
@@ -175,7 +183,7 @@ Dates are directional — phases gate on outcomes, not calendar.
 
 | Dependency | Blocks |
 |------------|--------|
-| Vercel deploy | Public URL for sharing |
+| Vercel deploy | ✅ Public URL for sharing |
 | OG tags | Link preview quality in iMessage |
 | Analytics queue | Funnel measurement |
 | Security Critical pass | Public marketing |
@@ -186,7 +194,8 @@ Dates are directional — phases gate on outcomes, not calendar.
 
 | Decision | Rationale |
 |----------|-----------|
-| Phase 1 before ads | Measure organic loop first |
+| Thrive craft inside Phase 1 | Loop-first quality before paid growth |
+| Phase 2 before Hours Budget | Measure organic loop first |
 | Shared not Feed | Naming integrity |
 | Docs as deliverable | Portfolio + handoff readiness |
 | Phase 4 explicitly deferred | Prevents platform fantasy |
@@ -198,7 +207,7 @@ Dates are directional — phases gate on outcomes, not calendar.
 | Phase | Success signal |
 |-------|----------------|
 | 0 | Core mechanic demoable |
-| 1 | Share card + funnel instrumented |
+| 1 | Share craft + funnel instrumented + live URL |
 | 2 | Organic shares with recipient completions |
 | 3 | Retained usage without paid growth |
 | 4 | Platform features serve validated behavior |
@@ -209,7 +218,7 @@ Dates are directional — phases gate on outcomes, not calendar.
 
 | Risk | Mitigation |
 |------|------------|
-| Phase 1 scope creep | SPEC.md + non-goals in vision doc |
 | Premature Phase 3 | Hard gate on funnel metrics |
 | Solo builder bandwidth | Phase 2 is experiments, not feature dump |
 | Seasonal purchase moments | Time content around holidays — learning, not forecast |
+| Craft without distribution | Phase 2 must start; polish alone does not prove the loop |

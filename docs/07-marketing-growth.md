@@ -117,15 +117,18 @@ Long-tail only after loop validation:
 
 ## Launch Sequence
 
+> Product Phase 1 (craft + deploy) is **done** — live at [realcost-xi.vercel.app](https://realcost-xi.vercel.app/). The phases below are **growth** phases, not engineering gates. See `09-phases-timeline.md` for product Phase 2 = this organic sprint.
+
 ### Phase 0 — Private validation
 
 - Friends & family send real comparisons
 - Watch `/c` completion informally
 - Fix broken OG, share sheet failures
 
-### Phase 1 — Organic content sprint (2–4 weeks)
+### Phase 1 — Organic content sprint (2–4 weeks) ← **next**
 
-- 3–5 hook variants posted
+- 3–5 hook variants posted (poster + story crops; dual challenge when available)
+- Lean on Skipped / hours-kept and “Same money. Different reality.” stitches
 - Track funnel via analytics queue export
 - Double down on highest share_completed hook only
 
@@ -141,6 +144,7 @@ Long-tail only after loop validation:
 - App Store feature chasing
 - Download count PR
 - Affiliate / referral codes
+- Hours Budget / budget-app positioning
 
 ---
 

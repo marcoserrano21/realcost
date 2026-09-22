@@ -1,6 +1,10 @@
 # User Journeys & Flows
 
-End-to-end paths through RealCost MVP — from first visit to closed comparison loop. Use these for UX reviews, QA scenarios, and portfolio walkthroughs.
+End-to-end paths through RealCost — from first visit to closed comparison loop. Use these for UX reviews, QA scenarios, and portfolio walkthroughs.
+
+**For screen-level states, scenarios, and a prioritized friction backlog → [15 — Screen Flows & Scenarios](./15-screen-flows-and-scenarios.md).**
+
+**Live:** [https://realcost-xi.vercel.app/](https://realcost-xi.vercel.app/)
 
 ---
 
@@ -36,15 +40,16 @@ New user arrives with no `localStorage` state. Goal: first **price → hours** r
 
 ### Steps
 
-1. **Landing** — 3-step `UnitsSetup` (intro + live preview → wage → name/focus/tone)
+1. **Landing** — 3-step `UnitsSetup` (intro + live preview → wage range buckets or exact rate → name/focus/tone)
 2. **Home** — price input auto-focused; `WelcomeModal` once after setup
-3. User enters price → **staggered reveal**: hours → category → decisions → ShareCard → Send
-4. Optional category → Bought / Thinking / Skipped (one-shot lock on Home)
+3. User enters price → **staggered reveal**: hours (+ life-span gloss if ≥24h) → category → decisions → ShareCard → Send
+4. Optional category → Bought / Thinking / Skipped (one-shot lock on Home; haptic on commit)
 5. `onboarding_completed` / `calculation_created` analytics as applicable
 
 ### Artifacts
 
-- `UnitsSetup.tsx` — one-way door until complete
+- `UnitsSetup.tsx` — one-way door until complete; wage range chips store midpoint in `realcost:units`
+- `wageBuckets.ts` — `$15–20` / `$20–25` / `$25–35` / `$35+` / Custom midpoints
 - `OnboardingCostPreview.tsx` — digit reels preview
 - `WelcomeModal.tsx` — first-run greeting
 - `markWelcomeSeen()` — prevents repeat welcome
@@ -52,7 +57,8 @@ New user arrives with no `localStorage` state. Goal: first **price → hours** r
 ### Success criteria
 
 - User sees formatted hours before any share prompt
-- Wage saved only to `realcost:units`
+- Wage saved only to `realcost:units` (bucket midpoint or exact)
+- Exact rate editable later in Settings
 - No account creation, no email
 
 ### Friction risks
@@ -73,19 +79,19 @@ Returning user with saved units. RealCost is a **decision tool**, not a dashboar
 
 ### Steps
 
-1. Open Home tab — price field ready
+1. Open Home tab — streak above header; price field ready
 2. Enter price → result updates live via `computeRealCost()`; reveal stack animates
-3. Optional **category** selection → `category_selected` event
-4. Tap **Bought** / **Thinking** / **Skipped**
-5. Tone-aware sheet via `getDecisionCopy()` — weekly skip summary when relevant
-6. Entry appended to `realcost:log`; Home choice locks (change in History)
+3. Optional **category** selection (re-tap to clear) → `category_selected` event
+4. Tap **Bought** / **Thinking** / **Skipped** (accent borders match History icons)
+5. Tone-aware sheet via `getDecisionCopy()` — weekly skip / hours-kept summary when relevant
+6. Entry appended to `realcost:log`; Home choice locks (change category or choice in History)
 7. Secondary UI collapses (category + share poster); Send CTA remains
-8. `decision_*` analytics event
+8. Meaningful Skipped (≥1h) can arm A2HS peak; `decision_*` analytics event
 
 ### Repeat value
 
-- **History tab** — filter by decision/category; sort + date; heat map
-- **Weekly streak** — paused hours + flame streak chip on Home
+- **History tab** — filter by decision/category; sort + date; recategorize; heat lenses
+- **Weekly streak + hours kept** — paused hours, flame chip, shareable “I kept N hours”
 - No push notifications — user returns when a purchase moment happens
 
 ### Success criteria
@@ -104,15 +110,16 @@ User wants someone else to see what the price costs *them* — without exposing 
 
 ### Steps
 
-1. From result state, tap **Send this price** (or Save/share image)
-2. `share_started` event
+1. From result state, tap **Send this price** (or Save/share image / video; optional Post / Story format)
+2. `share_started` event (`privacy`, optional `challenge`)
 3. System builds URL via `encodeComparison()` using Settings privacy mode:
    - **Private (default):** `p` (+ optional `s`) — **no `h`**
    - **Exact:** `p` + `h` (+ optional `s`) — hours in link
-4. **Share card** preview — editorial layout; theme-aware light/dark
-5. Native share sheet OR clipboard fallback (`nativeShare.ts`; cancel ≠ copy)
-6. `share_completed` event
-7. `addComparisonEntry({ role: "sent", shareId, ... })` → **Shared** tab (Waiting)
+4. **Share card** preview — poster 4:5, story 9:16, or dual when challenge-complete
+5. Optional **Save / share video** — ~3.5s digit-reel WebM (MP4 when supported); reduced-motion falls back to PNG
+6. Native share sheet OR clipboard fallback (`nativeShare.ts`; cancel ≠ copy)
+7. `share_completed` event; first successful share arms A2HS peak
+8. `addComparisonEntry({ role: "sent", shareId, ... })` → **Shared** tab (Waiting)
 
 ### Share copy
 
@@ -130,7 +137,7 @@ User wants someone else to see what the price costs *them* — without exposing 
 
 | Risk | Mitigation |
 |------|------------|
-| Ugly link preview | OG metadata without wage |
+| Ugly link preview | Challenge-framed OG (`compareOg.ts`) without wage |
 | Share abort counted as success | AbortError → cancelled; no fake clipboard toast |
 | Exact mode surprise | Settings confirm dialog |
 | User hesitates to share income | Default Private (no hours in link) |
@@ -141,21 +148,23 @@ User wants someone else to see what the price costs *them* — without exposing 
 
 ### Context
 
-Recipient receives a `/c` link — Private (`p` only) or Exact (`p` + `h`). May never have used RealCost before.
+Recipient receives a `/c` link — Private (`p` only) or Exact (`p` + `h`). May never have used RealCost before. OG / copy frames it as a **challenge**, not a download pitch.
 
 ### Steps
 
-1. Open `/c` — tab bar **hidden**
+1. Open `/c` — tab bar **hidden**; cinematic reveal ritual
 2. Decode params; **legacy `n=` ignored**
-3. Private: enter wage → see own hours for that price; Exact: see sender hours + enter wage for side-by-side
-4. Broken link state if params invalid — friendly error, link Home
-5. Optional **React**: send hours back via `reply=1` + `h` + matching `s`
-6. `addComparisonEntry({ role: "received", ... })` on recipient device
-7. Sender’s Shared tab moves entry to **Seen** when reaction applied on-device
+3. **Instant benchmark teaser** — “At the US median (~$22/hr), this is Xh” from local constant (`benchmarkHoursForPrice`); not a URL param
+4. Private: enter wage → see own hours for that price; Exact: see sender hours + enter wage for side-by-side
+5. Broken link state if params invalid — friendly error, link Home
+6. Optional **React**: send hours back via `reply=1` + `h` + matching `s`
+7. `addComparisonEntry({ role: "received", ... })` on recipient device
+8. Sender’s Shared tab moves entry to **Seen** when reaction applied on-device
+9. When both sides have hours → dual challenge card unlocks
 
 ### Privacy flow
 
-Recipient wage → their device only. Never appended to URL. Never sent to analytics.
+Recipient wage → their device only. Never appended to URL. Never sent to analytics. Median benchmark is a display-only constant.
 
 ### Success criteria
 
@@ -174,8 +183,6 @@ Recipient wage → their device only. Never appended to URL. Never sent to analy
 ### Context
 
 User adjusts rate, look & feel, or sharing mode.
-
-User updates rate, changes tone, or wipes data.
 
 ### Paths
 
@@ -204,14 +211,15 @@ User updates rate, changes tone, or wipes data.
 | `/c` hides tab bar | Recipient flow is a focused task |
 | Onboarding is one-way door | First-run setup → Home; TabBar hidden until units exist |
 | Shared ≠ social feed | Local inbox only; Waiting / Seen / Received |
+| TabBar clears home indicator | `viewportFit: cover` + safe-area bottom inset |
 
 ### Tab responsibilities
 
 | Tab | Primary job |
 |-----|-------------|
 | **Home** | Calculate + categorize + decide + share |
-| **Shared** | Sent/received inbox + reactions |
-| **History** | Personal decision log + filters + heat map |
+| **Shared** | Sent/received inbox + reactions + challenge dual |
+| **History** | Personal decision log + filters + heat lenses + recategorize |
 | **Settings** | Rate, look & feel, sharing mode, reset |
 
 ---
@@ -224,11 +232,15 @@ User updates rate, changes tone, or wipes data.
 | Valid price entered | `calculation_created` |
 | Category picked | `category_selected` |
 | Decision logged | `decision_bought` / `decision_skipped` / `decision_thinking` |
-| Share initiated | `share_started` |
-| Share delivered | `share_completed` |
+| Share initiated | `share_started` (+ `privacy`, `challenge`) |
+| Share delivered | `share_completed` (+ `method`, `privacy`, `challenge`) |
+| Share image | `share_image_started` / `share_image_completed` |
+| Share video | `share_video_started` / `share_video_completed` |
 | `/c` opened | `comparison_opened` |
 | Recipient enters rate | `recipient_calculation_completed` |
 | Recipient shares back | `recipient_shared` |
+| Reaction | `reaction_sent` / `reaction_received` |
+| Install cue | `a2hs_prompt_shown` / `a2hs_dismissed` / `a2hs_choice` |
 
 All events pass through wage/name stripper in `analytics.ts`.
 
@@ -251,8 +263,8 @@ No public metrics claimed until organic experiments run.
 
 | Risk | Question |
 |------|----------|
-| Recipient bounce on wage entry | Can `/c` show impact before asking for rate? (A/B later) |
+| Recipient bounce on wage entry | `/c` median teaser + ritual reduces form feel — still watch completion |
 | Shared tab discovery | Do senders know Waiting → Seen? Honesty banner helps |
 | Exact vs Private defaults | Keep Private default; watch Exact opt-in rate |
 | History without share | Journey B alone doesn't validate hypothesis — acceptable but insufficient |
-| Deep link OG | Does preview communicate “enter your rate” clearly enough? |
+| Deep link OG | Challenge framing vs “enter your rate” clarity |

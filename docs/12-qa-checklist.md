@@ -41,18 +41,21 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 
 - [ ] Enter price → hours display updates immediately
 - [ ] Hours use tabular numerals; readable at arm's length
+- [ ] Life-span gloss appears only when hours ≥ 24; hours remain primary
 - [ ] Shifts and dinners show as secondary units
 - [ ] Zero/empty price shows no result (no crash)
 - [ ] Very large price (e.g. 99999) formats without overflow
+- [ ] Cash amount field stays centered; width grows with digits
 - [ ] Category appears **above** decision chips on Home
-- [ ] Category chips single-select; **Others** accepts custom label
+- [ ] Category chips single-select; re-tap clears; **Others** accepts custom label
 - [ ] Bought / Thinking / Skipped each log to History
+- [ ] Choice chip borders match History icon accents (success / action / champagne)
 - [ ] After decide, secondary blocks collapse; choice locked on Home
-- [ ] Decision sheet copy matches selected tone
-- [ ] Skipped decision shows weekly pause summary when applicable
-- [ ] Weekly streak + flame chip render when streak > 0
-- [ ] ShareCard readable in light and dark themes
-- [ ] Reduce motion: hours digits update (not stuck at 00m)
+- [ ] Decision sheet copy matches selected tone; sheet accents match choice
+- [ ] Skipped decision shows weekly pause / hours-kept summary when applicable
+- [ ] Weekly streak + flame chip render when streak > 0 (above header)
+- [ ] ShareCard readable in light and dark; Post / Story format toggle works
+- [ ] Reduce motion: hours digits update (not stuck at 00m); haptics suppressed
 - [ ] `calculation_created` and `decision_*` events fire
 
 ---
@@ -60,8 +63,10 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 ## Journey C — Share (Sender)
 
 - [ ] Share CTA visible from result state
-- [ ] Share card preview renders hours as hero
-- [ ] Share card never displays wage
+- [ ] Share card preview renders hours as hero (never wage)
+- [ ] Story 9:16 and poster 4:5 export correctly
+- [ ] Hours-kept card variant available when Skipped totals exist
+- [ ] Dual challenge card only when both sides have hours
 - [ ] Native share sheet opens on supported mobile browsers
 - [ ] Clipboard fallback works when native share unavailable
 - [ ] Shared URL: Private = `/c?p=…` (no `h`); Exact = `/c?p=…&h=…` (+ optional `&s=`)
@@ -70,13 +75,15 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 - [ ] Share text reads naturally; Private does not claim sender hours
 - [ ] Sent comparison appears in **Shared** tab (Waiting)
 - [ ] Native share abort does not show “copied” success
-- [ ] `share_started` + `share_completed` events fire
+- [ ] First successful share can show A2HS (if not dismissed / not standalone)
+- [ ] `share_started` + `share_completed` events fire (with `privacy` / `challenge` as applicable)
 
 ---
 
 ## Journey D — Recipient (`/c`)
 
 - [ ] Valid link opens comparison view; tab bar hidden
+- [ ] OG / page framing reads as a challenge, not a download pitch
 - [ ] Private links: recipient enters wage → own hours for price
 - [ ] Exact links: sender hours visible; recipient can compare
 - [ ] Legacy `n=` ignored if present
@@ -85,6 +92,7 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 - [ ] React / reply updates sender Shared → Seen when `shareId` matches
 - [ ] Recipient can share own card after completing
 - [ ] Received comparison logs locally on recipient device
+- [ ] Dual card unlocks after both sides have hours
 - [ ] `comparison_opened` + `recipient_calculation_completed` fire
 - [ ] `recipient_shared` fires when recipient shares
 
@@ -109,9 +117,10 @@ Cross-reference `08-security-privacy.md` audit IDs.
 - [ ] **Dark mode** — default design intent; all screens readable
 - [ ] **Light mode** — follows OS `prefers-color-scheme`; contrast sufficient
 - [ ] **Forced-colors / high contrast** — UI remains usable
-- [ ] Share card gradient renders correctly in dark and light
+- [ ] Share card gradient renders correctly in dark and light (all formats)
 - [ ] Brand wordmark legible on Home and share card
 - [ ] No purple CTA glow or off-brand accent colors
+- [ ] Tab bar clears iPhone home indicator (safe-area)
 
 ---
 
@@ -120,7 +129,7 @@ Cross-reference `08-security-privacy.md` audit IDs.
 - [ ] Touch targets ≥ 44px on chips, decision buttons, tab bar items
 - [ ] Visible focus rings on all interactive elements
 - [ ] Share card has `aria-label` for screen readers
-- [ ] **`prefers-reduced-motion`:** press scale disabled; no essential info in motion-only UI
+- [ ] **`prefers-reduced-motion`:** press scale disabled; no essential info in motion-only UI; haptics off
 - [ ] Semantic landmarks present (`main`, `nav`)
 - [ ] Form inputs have associated labels
 - [ ] Color is not sole indicator of state
@@ -131,12 +140,15 @@ Cross-reference `08-security-privacy.md` audit IDs.
 
 - [ ] All four tabs reachable: Home / **Shared** / History / Settings
 - [ ] Shared tab shows Waiting / Seen / Received with distinction
+- [ ] Shared cards show note + peer name; price not editable
 - [ ] Shared pagination appears only when >10 entries
 - [ ] History filters by decision type (Bought / Thinking / Skipped)
 - [ ] History filters by category; Sort/Date menus open with chevron animation
-- [ ] History Skipped icon is pause (not shield)
+- [ ] History can recategorize an entry
+- [ ] History heat map shows all categories; metric menu switches kept / thinking / spent
+- [ ] History Skipped icon is pause (champagne); distinct from Bought/Thinking
 - [ ] Tab titles align across screens (`ScreenHeader`)
-- [ ] Glass TabBar readable in light and dark
+- [ ] Glass TabBar readable in light and dark; safe-area inset on notched iPhones
 - [ ] Settings: wage edit persists; Exact confirm works; theme/motion persist
 - [ ] BounceLoader appears briefly on cold boot when hydrating units
 - [ ] Settings: shift hours and dinner cost editable
@@ -144,16 +156,17 @@ Cross-reference `08-security-privacy.md` audit IDs.
 - [ ] Reset onboarding clears setup but **preserves** history + comparisons
 - [ ] Reset RealCost wipes all keys with confirmation
 - [ ] `realcost:units-updated` event refreshes Home when settings saved
+- [ ] A2HS shows after share or meaningful Skipped; forever dismissible
 
 ---
 
 ## Build & Test Health
 
-- [ ] `npm test` passes (calc + sharing tests)
+- [ ] `npm test` passes (calc, sharing, formats, challenge, haptics, hours-kept, A2HS)
 - [ ] `npm run build` passes (no TypeScript errors)
 - [ ] `npm run lint` passes (if configured)
 - [ ] No console errors on happy-path walkthrough
-- [ ] Production build runs on Vercel preview URL
+- [ ] Production build runs on [realcost-xi.vercel.app](https://realcost-xi.vercel.app/)
 
 ---
 
@@ -163,7 +176,7 @@ Minimum manual coverage before public launch:
 
 | Environment | Tests |
 |-------------|-------|
-| iOS Safari | Share sheet, `/c` open from iMessage |
+| iOS Safari | Share sheet, `/c` open from iMessage, TabBar vs home indicator |
 | Android Chrome | Share intent, clipboard fallback |
 | Desktop Chrome | Full flow + keyboard nav |
 | Desktop Safari | localStorage persistence |
@@ -177,10 +190,12 @@ Re-run full checklist when changing:
 - `src/lib/sharing.ts`
 - `src/lib/analytics.ts`
 - `src/lib/storage.ts`
+- `src/lib/shareFormats.ts` / `shareImage.ts`
+- `src/lib/a2hsGate.ts` / `haptics.ts`
 - `ShareCard.tsx`
 - `/c` route or `CompareClient.tsx`
-- OG metadata / layout.tsx
-- Theme tokens / globals.css
+- OG metadata / layout.tsx (`viewportFit`)
+- Theme tokens / globals.css / tab-bar.css
 
 ---
 
@@ -201,4 +216,4 @@ Re-run full checklist when changing:
 | Automated E2E absent | Manual matrix acceptable for MVP |
 | OG preview varies by platform | Test iMessage + Slack + Twitter card |
 | localStorage in private mode | Graceful degradation if quota exceeded |
-| html-to-image share capture | Verify if implemented; fallback to URL share |
+| Canvas share capture | Verify PNG + format toggle; fallback to URL share |

@@ -49,12 +49,19 @@ Enables dev tools or future debug panels without coupling to vendor SDK.
 | `decision_bought` | User logs Bought | — |
 | `decision_skipped` | User logs Skipped | — |
 | `decision_thinking` | User logs Thinking | — |
-| `share_started` | Share CTA tapped | — |
-| `share_completed` | Native share or clipboard success | `method`: `native` \| `clipboard` |
+| `share_started` | Share CTA tapped | `privacy`, `challenge` |
+| `share_completed` | Native share or clipboard success | `method`: `native` \| `clipboard`; `privacy`; `challenge` |
+| `share_image_started` | Save/share PNG started | `challenge`, `format`, `variant` |
+| `share_image_completed` | PNG export succeeded | `challenge`, `format`, `variant` |
 | `comparison_opened` | Valid `/c` params loaded | — |
 | `recipient_calculation_completed` | Recipient enters rate and sees result | — |
 | `recipient_shared` | Recipient shares their card | — |
+| `reaction_sent` | Recipient sends hours reply | — |
+| `reaction_received` | Sender applies matching reaction | — |
 | `onboarding_completed` | Setup flow finished | `tone`, `spending_focus` |
+| `a2hs_prompt_shown` | Install cue shown | `ios`, `peak` (`share` \| `skipped` \| legacy) |
+| `a2hs_dismissed` | User dismisses install cue | — |
+| `a2hs_choice` | User accepts / interacts with install | `outcome` |
 
 ### Forbidden properties (never stored)
 
@@ -64,7 +71,7 @@ Enables dev tools or future debug panels without coupling to vendor SDK.
 | `email` | PII |
 | `name` | PII — even though name is local-only elsewhere |
 
-**Note:** Display name is local / on-card only. It is **not** tracked and **not** encoded in share URLs (legacy `n=` ignored).
+**Note:** Display name is local / on-card only. It is **not** tracked and **not** encoded in share URLs (legacy `n=` ignored). Safe boolean/string props like `privacy`, `challenge`, `format`, and `peak` are allowed.
 
 ---
 

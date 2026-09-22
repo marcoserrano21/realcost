@@ -103,6 +103,9 @@ The share card is not a referral widget. It is the **primary distribution creati
 3. **No wage on card** — ever
 4. **Optional first name on card only** — never in the share URL
 5. **Brand mark small** — curiosity first, logo second
+6. **Formats travel** — 4:5 poster, 9:16 story, dual challenge when both sides have hours
+7. **Hours-kept variant** — Skipped pride (“I kept N hours”), never shame language
+8. **Life-span gloss is secondary** — calendar caption may appear under large totals; hours stay primary
 
 ### Share text template
 

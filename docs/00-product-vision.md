@@ -4,6 +4,8 @@
 
 **Thesis:** Same money. Different reality.
 
+**Live:** [https://realcost-xi.vercel.app/](https://realcost-xi.vercel.app/)
+
 ---
 
 ## Context / Problem
@@ -34,7 +36,7 @@ Then:
 
 > “What does it mean for you?”
 
-That pause is the product. Everything else (history, categories, tone settings) exists to reinforce it, not replace it.
+That pause is the product. Everything else (history, categories, tone settings, hours kept) exists to reinforce it, not replace it.
 
 ---
 
@@ -43,17 +45,20 @@ That pause is the product. Everything else (history, categories, tone settings) 
 | Capability | What it does |
 |------------|--------------|
 | **Price → hours** | Enter a price; see hours (hero), shifts, and dinners from take-home hourly rate (`computeRealCost`) |
-| **Category first** | Optional “What is this for?” before logging Bought / Thinking / Skipped |
-| **Decision moment** | One-tap log on Home (locked until edited in History); tone-aware sheet |
-| **Weekly streak** | Hours paused this week + consecutive week streak (flame chip) |
+| **Life-span gloss** | Secondary calendar caption (≥24h): days / weeks / months / years — hours stay primary |
+| **Category first** | Optional “What is this for?” before logging; tap again to deselect |
+| **Decision moment** | One-tap Bought / Thinking / Skipped; accent colors match History icons; tone-aware sheet |
+| **Weekly streak + hours kept** | Paused hours this week, flame streak, and Skipped “hours kept” identity |
 | **Share** | **Private** (default): URL with price only · **Exact** (opt-in): price + hours · **never wage** |
-| **Share card / image** | 4:5 poster (light + dark themes) + Save/share PNG |
-| **Recipient flow** | Open `/c`, enter wage locally, compare; optional React hours back |
-| **Shared tab** | Local inbox: Waiting / Seen / Received (`/feed` route) |
-| **History** | Filters, sort/date, category heat map, edit choice, reshare |
+| **Share formats** | 4:5 poster, 9:16 story, dual challenge card when both sides have hours; Save/share PNG |
+| **Recipient flow** | Open `/c` as a challenge ritual; enter wage locally; compare; optional React hours back |
+| **Shared tab** | Local inbox: Waiting / Seen / Received (`/feed`); note + peer name; no price edit |
+| **History** | Filters, sort/date, recategorize, heat map with kept / thinking / spent lenses |
+| **Haptics** | Light feedback on reveal settle, decision commit, share success (respects reduce-motion) |
+| **Soft install** | A2HS after first successful share or meaningful Skipped hours kept |
 | **Local-first memory** | Settings and logs in `localStorage` — no account |
 
-Stack: **Next.js 16.3 App Router**, React 19, TypeScript, Tailwind v4, shadcn/ui. Zero user backend.
+Stack: **Next.js 16.3 App Router**, React 19, TypeScript, Tailwind v4, shadcn/ui. Zero user backend. Deployed on Vercel.
 
 ---
 
@@ -69,7 +74,11 @@ Wage stays on-device. **Private** share URLs encode price (and optional opaque s
 
 ### The share card is the network
 
-Distribution is designed around a beautiful, screenshot-ready artifact — not an app download pitch. The card carries the question; the app is where you answer it.
+Distribution is designed around a beautiful, screenshot-ready artifact — not an app download pitch. Formats travel to Stories/Reels (9:16) and dual-pane challenges. The card carries the question; the app is where you answer it.
+
+### Skipped as pride, not shame
+
+Hours kept from Skipped decisions are a first-class shareable identity. History heat map is *memory* (category lenses), not a budget dashboard. Hours Budget UI stays gated until the share loop proves out.
 
 ---
 
@@ -83,6 +92,7 @@ Distribution is designed around a beautiful, screenshot-ready artifact — not a
 | **Four-tab navigation** | Home / **Shared** / History / Settings — peers, not hierarchy |
 | **Shared tab (not “Feed”)** | Local inbox of sent/received comparisons and reactions — not a social network |
 | **Private-by-default sharing** | Exact hours-in-link is opt-in with confirm |
+| **Thrive craft before depth** | Card formats, `/c` ritual, hours kept, haptics, peak install — then distribution experiments |
 
 ---
 
@@ -108,7 +118,7 @@ Do not build these until the share loop shows real behavior:
 - Bank links or transaction import
 - AI financial advisor
 - Social feed, profiles, likes, or public rankings
-- Full budgeting suite / Hours Budget UI (planned in doc 14 only; gated until share→recipient metrics — thrive spec 2026-09-20)
+- Full budgeting suite / Hours Budget UI (planned in doc 14 only; gated until share→recipient metrics)
 - Monetization layers
 - Backend auth or cloud sync
 - Service worker offline shell
