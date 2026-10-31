@@ -67,20 +67,20 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 ## Journey C — Share (Sender)
 
 - [ ] Share CTA visible from result state
-- [ ] Share card preview renders hours as hero (never wage)
+- [ ] Standard share card shows the price and “What does it cost you?” (no hours)
 - [ ] Story 9:16 and poster 4:5 export correctly
-- [ ] Hours-kept card variant available when Skipped totals exist
-- [ ] Dual challenge card only when both sides have hours
+- [ ] Hours-kept card shows hours only (no skipped dollars)
 - [ ] Native share sheet opens on supported mobile browsers
 - [ ] Clipboard fallback works when native share unavailable
-- [ ] Shared URL: Private = `/c?p=…` (no `h`); Exact = `/c?p=…&h=…` (+ optional `&s=`)
-- [ ] **Wage never appears in shared URL** ⚠️ Critical
+- [ ] Shared URL is `/c?p=…` (+ optional `&s=` and `&reply=1`). Never `h`
+- [ ] **Wage never appears in shared URL, text, poster, or OG** ⚠️ Critical
 - [ ] **Name (`n=`) never appears in shared URL** ⚠️ Critical
-- [ ] Share text reads naturally; Private does not claim sender hours
+- [ ] Legacy `h` and `n` are stripped from the address bar after open
+- [ ] Share text invites the other person and does not include hours
 - [ ] Sent comparison appears in **Shared** tab (Waiting)
 - [ ] Native share abort does not show “copied” success
 - [ ] First successful share can show A2HS (if not dismissed / not standalone)
-- [ ] `share_started` + `share_completed` events fire (with `privacy` / `challenge` as applicable)
+- [ ] `share_started` + `share_completed` events fire (with `challenge` as applicable, never a number)
 
 ---
 
@@ -89,9 +89,9 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 - [ ] Valid link opens comparison view; tab bar hidden
 - [ ] OG / page framing reads as a challenge, not a download pitch
 - [ ] Median benchmark teaser shows instantly before wage entry (local constant; no new URL param)
-- [ ] Private links: recipient enters wage → own hours for price
-- [ ] Exact links: sender hours visible; recipient can compare
-- [ ] Legacy `n=` ignored if present
+- [ ] Price-only links: recipient enters wage → own hours for that price
+- [ ] Legacy `h=` and `n=` ignored, then removed from the URL
+- [ ] Reply button reads “Tell them I checked” and the reply URL has no hours
 - [ ] Invalid params → friendly broken state, link Home
 - [ ] Recipient wage stays local — not appended to URL
 - [ ] React / reply updates sender Shared → Seen when `shareId` matches
@@ -154,7 +154,7 @@ Cross-reference `08-security-privacy.md` audit IDs.
 - [ ] History Skipped icon is pause (champagne); distinct from Bought/Thinking
 - [ ] Tab titles align across screens (`ScreenHeader`)
 - [ ] Glass TabBar readable in light and dark; safe-area inset on notched iPhones
-- [ ] Settings: wage edit persists; Exact confirm works; theme/motion persist
+- [ ] Settings: wage edit persists; no hours-in-link option; theme/motion persist
 - [ ] BounceLoader appears briefly on cold boot when hydrating units
 - [ ] Settings: shift hours and dinner cost editable
 - [ ] Settings: tone change affects next decision sheet

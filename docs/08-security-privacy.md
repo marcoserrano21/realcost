@@ -13,7 +13,7 @@ Pre-launch security and privacy review for RealCost MVP — a **client-only Next
 RealCost's privacy model is **local-first by architecture**, not policy alone. The MVP intentionally avoids accounts, servers, and PII collection. Residual risk concentrates in:
 
 1. **Client-side storage exposure** (XSS, shared devices, shoulder surfing)
-2. **Share URL information leakage** (Private: price only; Exact: price + hours ≈ rate)
+2. **Share URL information leakage** (a link that carries both price and hours recovers wage)
 3. **Third-party deployment surface** (Vercel headers, OG crawlers)
 
 **Note:** Display name is **local-only** — legacy `n=` URL param is stripped on decode and must not be reintroduced.
@@ -72,12 +72,12 @@ The product also encourages **sharing** — traditionally where privacy goes wro
 
 | Layer | Control | File |
 |-------|---------|------|
-| Share encoding | Private: `p` (+`s`); Exact: `p`+`h` (+`s`); never wage or name | `sharing.ts`, `sharePrivacy.ts` |
-| Share decoding | No wage; legacy `n=` ignored | `sharing.ts` |
-| Analytics | Keys matching `/wage\|rate\|email\|name/i` stripped | `analytics.ts` |
-| Share card UI | Hours + price only | `ShareCard.tsx` |
-| Exact opt-in | Confirm dialog before enabling hours-in-link | Settings + `ConfirmDialog` |
-| Tests | Private omits hours; Exact includes hours; no wage | `calc-sharing.test.ts` |
+| Share encoding | `p` (+`s`, +`reply`) only. Never hours, wage, or name | `sharing.ts` |
+| Share decoding | No wage; legacy `h=` and `n=` ignored, then stripped from the URL | `sharing.ts`, `CompareClient.tsx` |
+| Analytics | Per-event allowlist. Numbers dropped. Values equal to the current wage dropped. Key deny-list kept | `analyticsProps.ts`, `analytics.ts`, `api/analytics/route.ts` |
+| Share card / poster | Price or hours, never both. No life-span gloss on the poster | `sharePosterContent.ts`, `ShareCard.tsx`, `shareImage.ts` |
+| Stale opt-in | `realcost:share_privacy` is removed on load | `storage.ts` |
+| Tests | Wage cannot be recovered from URL, copy, poster, or OG | `wage-leak.test.ts`, `calc-sharing.test.ts` |
 
 ---
 
@@ -87,9 +87,9 @@ Must be verified **before** public marketing URL goes live.
 
 | ID | Finding | Risk | Required state | Verification |
 |----|---------|------|----------------|--------------|
-| **C-01** | Wage in share URL | Income exposure via link forwarding, browser history, referrer logs | **Pass** — `encodeComparison()` never sets wage params | QA: inspect shared URL; automated test |
-| **C-02** | Wage in analytics events | Third-party sink re-identification | **Pass** — stripper in `track()` | DevTools: confirm no wage in queue payload |
-| **C-03** | Wage in OG/social metadata | Crawlers cache sensitive context | **Pass** — OG uses price/hours only or static safe template | Fetch OG tags; manual share preview |
+| **C-01** | Wage in share URL | Income exposure via link forwarding, browser history, referrer logs | **Pass** — `encodeComparison()` never sets wage or hours. Price alone cannot be divided back into a wage | QA: inspect shared URL; `wage-leak.test.ts` |
+| **C-02** | Wage in analytics events | Third-party sink re-identification | **Pass** — allowlist in `track()` and the API route. Numbers and wage-equal values are dropped | DevTools: confirm no wage in queue payload |
+| **C-03** | Wage in OG/social metadata | Crawlers cache sensitive context | **Pass** — OG title and description are static and contain no digits | Fetch OG tags; `compare-og.test.ts` |
 | **C-04** | Unvalidated `/c` params crash or XSS | Broken UX or injection via query string | **Pass** — `decodeComparison()` returns null; React text binding | QA broken link; fuzz `p`/`h` values |
 | **C-05** | Reset does not confirm wipe | Accidental total data loss | **Pass** — Settings reset uses confirmation dialog | Manual QA |
 | **C-06** | HTTPS only in production | MITM on wage entry (theoretical) | **Pass** — Vercel default TLS | Verify redirect HTTP→HTTPS |
@@ -99,16 +99,14 @@ Must be verified **before** public marketing URL goes live.
 Shared URL contains:
 
 - `p` — purchase price (always when sharing)
-- `h` — sender hours (**Exact mode or reaction reply only**)
 - `s` — opaque share id (reactions)
-- `reply=1` — reaction flag (recipient → sender)
+- `reply=1` — the recipient checked this price (no hours)
 
-**Not in URLs:** wage, display name (legacy `n=` stripped).
+**Not in URLs:** wage, hours, display name. Legacy `h=` and `n=` are ignored by `decodeComparison` and removed with `router.replace`.
 
-**Private residual:** price alone is intentional share content.  
-**Exact residual:** recipient (or anyone with the link) can estimate wage ≈ `p/h`. Accepted only as **opt-in** with Settings confirm.
+**Residual:** price alone is intentional share content. Hours stay on each device. A share image follows the same rule: the standard poster shows the price, the hours-kept poster shows hours, and neither shows both.
 
-**Not accepted:** Encoding raw wage directly.
+**Not accepted:** Encoding wage, or encoding any pair that divides back to wage.
 
 ---
 
@@ -140,7 +138,7 @@ Privacy features that **enable** the hypothesis, not just protect users.
 | **S-03** | Reset onboarding without history wipe | Shared devices, rate experiments | ✅ `resetOnboarding()` |
 | **S-04** | Full reset with confirmation | GDPR-adjacent user control (delete my data) | ✅ `clearAllData()` |
 | **S-05** | No account email collection | Eliminates #1 PII leak vector | ✅ By design |
-| **S-06** | Hours-only share card | Screenshot-safe for Stories | ✅ ShareCard component |
+| **S-06** | Price-only or hours-only share card | Screenshot of a poster cannot recover wage | ✅ ShareCard + `sharePosterContent` |
 | **S-07** | Dev-only analytics console | Validate funnel without sending PII to vendor | ✅ `NODE_ENV !== 'production'` |
 | **S-08** | Swappable analytics sink | Add PostHog later without wage in call sites | ✅ Queue abstraction |
 
@@ -161,20 +159,20 @@ computeRealCost(price, units)
       │
       ├──► addLogEntry({ price, hours, choice })  ◄── wage NOT stored in log
       │
-      └──► encodeComparison({ price, hours?, shareId, privacy })
+      └──► encodeComparison({ price, shareId })
                 │
                 ▼
-           URL: Private /c?p=&s=  or  Exact /c?p=&h=&s=
-                │                    ◄── wage NOT in URL; name NOT in URL
+           URL: /c?p=&s=   or   /c?p=&s=&reply=1
+                │                    ◄── wage NOT in URL; hours NOT in URL; name NOT in URL
                 ▼
            Recipient enters OWN wage locally
                 │
                 ▼
-           Side-by-side / react (reply=1) → sender Shared shows Seen
+           Reply (reply=1, no hours) → sender Shared shows Seen
 
 Parallel path:
-track(event, props) ──► strip wage/rate/name/email keys ──► localStorage queue
-                                                      └──► (future) PostHog
+track(event, props) ──► allowlist + drop numbers/wage ──► localStorage queue
+                                                   └──► /api/analytics (same allowlist)
 ```
 
 ---
@@ -198,7 +196,7 @@ track(event, props) ──► strip wage/rate/name/email keys ──► localSto
 
 | Vendor | Data shared | Risk |
 |--------|-------------|------|
-| **Vercel** | Request logs (URLs may contain `p`, `h`, `n`) | Medium — access logs see comparison params |
+| **Vercel** | Request logs (URLs may contain `p`, `s`, `reply`) | Medium — access logs see the price, not hours or wage |
 | **Google Fonts (if CDN)** | IP, referrer | Low — no user content |
 | **Future analytics** | Stripped events only | Low if stripper maintained |
 
@@ -253,7 +251,7 @@ No user notification list exists (no emails collected).
 
 | Question | Options |
 |----------|---------|
-| Is `p/h` inference acceptable? | Yes for MVP — document in share consent copy |
+| Is `p/h` inference acceptable? | No. Links and posters never carry both |
 | Remove `n=` from URLs entirely? | **Done** — decoder ignores; do not re-encode |
 | Encrypt localStorage? | Overkill for MVP; Web Crypto if sync added |
 | Server-side comparison links? | Would enable tracking but increases PII custody — defer |
