@@ -93,11 +93,7 @@ export default function WeeklyStreak({
       ) : null}
 
       {shareKept && streak.hoursThisWeek > 0 ? (
-        <ShareCard
-          price={streak.dollarsPausedThisWeek}
-          hours={streak.hoursThisWeek}
-          variant="hoursKept"
-        />
+        <ShareCard hours={streak.hoursThisWeek} variant="hoursKept" />
       ) : null}
 
       {!compactTop && !empty && (streak.longestStreak > 1 || streak.bestWeekHours > 0)
