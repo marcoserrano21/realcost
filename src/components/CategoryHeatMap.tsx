@@ -114,7 +114,7 @@ export default function CategoryHeatMap({
               <div className="category-heat-track" aria-hidden="true">
                 <span
                   className={`category-heat-fill category-heat-fill-${metric}`}
-                  style={{ width: `${Math.max(8, row.share * 100)}%` }}
+                  style={{ ["--fill" as string]: Math.max(0.08, row.share) }}
                 />
               </div>
             </li>
