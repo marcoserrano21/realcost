@@ -16,10 +16,14 @@ html[data-reduce-motion="true"] .pressable:active:not(:disabled) {
   transform: none;
 }
 
-html[data-reduce-motion="true"] .home-reveal-stack.is-decided .home-reveal-item[data-collapse="secondary"] {
-  opacity: 0 !important;
-  max-height: 0 !important;
+html[data-reduce-motion="true"] .home-reveal-stack.is-decided .home-reveal-item[data-collapse="secondary"],
+html[data-reduce-motion="true"] .home-reveal-stack.is-collapsed .home-reveal-item[data-collapse="secondary"] {
+  display: none !important;
   pointer-events: none !important;
+}
+
+html[data-reduce-motion="true"] .home-reveal-stack.is-collapsed .home-reveal-item {
+  animation: none !important;
 }
 
 html[data-reduce-motion="true"] .page-enter,
@@ -27,17 +31,14 @@ html[data-reduce-motion="true"] .home-reveal-item,
 html[data-reduce-motion="true"] .feed-item,
 html[data-reduce-motion="true"] .history-item,
 html[data-reduce-motion="true"] .result-card,
-html[data-reduce-motion="true"] .result-card-enter,
-html[data-reduce-motion="true"] .result-hours-tick,
-html[data-reduce-motion="true"] .result-metric-tick,
-html[data-reduce-motion="true"] .hours-odometer-value,
-html[data-reduce-motion="true"] .hours-odometer-digit,
 html[data-reduce-motion="true"] .home-results-slot.is-open,
 html[data-reduce-motion="true"] .home-reveal-stack.is-leaving,
 html[data-reduce-motion="true"] .home-stage,
 html[data-reduce-motion="true"] .share-motion,
-html[data-reduce-motion="true"] .share-motion-enter,
-html[data-reduce-motion="true"] .onboarding-step-motion {
+html[data-reduce-motion="true"] .onboarding-step-motion,
+html[data-reduce-motion="true"] .copy-confirm > span,
+html[data-reduce-motion="true"] .header-copied,
+html[data-reduce-motion="true"] .reaction-banner {
   opacity: 1 !important;
   transform: none !important;
   filter: none !important;
@@ -46,16 +47,19 @@ html[data-reduce-motion="true"] .onboarding-step-motion {
   pointer-events: auto !important;
 }
 
-html[data-reduce-motion="true"] .home-results-slot:not(.is-open) {
-  grid-template-rows: 0fr !important;
-  margin-top: 0 !important;
+html[data-reduce-motion="true"] .home-results-slot:not(.is-open):not(.is-leaving) {
   opacity: 0 !important;
   pointer-events: none !important;
 }
 
 html[data-reduce-motion="true"] .home-results-slot.is-open {
-  grid-template-rows: 1fr !important;
-  margin-top: 1.5rem !important;
+  opacity: 1 !important;
+}
+
+html[data-reduce-motion="true"] .home-results-slot.is-leaving {
+  opacity: 0 !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 html[data-reduce-motion="true"] .share-accordion-panel,
@@ -84,4 +88,33 @@ html[data-reduce-motion="true"] .history-edit-panel.is-open .edit-stagger {
 
 html[data-reduce-motion="true"] .settings-save-float {
   transition: none !important;
+}
+
+html[data-reduce-motion="true"] .progress-track span,
+html[data-reduce-motion="true"] .category-heat-fill {
+  transition: none !important;
+}
+
+/* Performance bonus for people who asked for less motion.
+   A static blur does not move. The no-movement rules above are the accessibility fix. */
+html[data-reduce-motion="true"] .tab-bar,
+html[data-reduce-motion="true"] .decision-overlay,
+html[data-reduce-motion="true"] .install-prompt {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
+html[data-reduce-motion="true"] .tab-bar {
+  background: color-mix(in srgb, var(--surface) 94%, transparent) !important;
+}
+
+html[data-reduce-motion="true"] .decision-overlay,
+html[data-reduce-motion="true"] .install-prompt {
+  background: rgb(7 7 11 / 88%) !important;
+}
+
+html[data-reduce-motion="true"] .decision-sheet-overlay.is-closing,
+html[data-reduce-motion="true"] .decision-sheet-overlay.is-closing .decision-sheet {
+  animation: none !important;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type AnimationEvent, type CSSProperties } from "react";
 import { computeRealCost, formatMoney } from "@/lib/calc";
 import type { Units, RealCostResult } from "@/lib/calc";
 import {
@@ -34,12 +34,21 @@ import WeeklyStreak from "@/components/WeeklyStreak";
 import InstallPrompt from "@/components/InstallPrompt";
 import ScreenHeader from "@/components/ScreenHeader";
 import BounceLoader from "@/components/BounceLoader";
+import CopyConfirm from "@/components/CopyConfirm";
 import { PURCHASE_CATEGORY_OPTIONS } from "@/lib/personalizationOptions";
 import { markA2HSPeak } from "@/lib/storage";
 import { isMeaningfulHoursKept } from "@/lib/a2hsGate";
 
-const CLEAR_FADE_MS = 720;
-const STACK_VISIBLE_DELAY_MS = 280;
+const CLEAR_FADE_MS = 180;
+const STACK_VISIBLE_DELAY_MS = 60;
+const COLLAPSE_FADE_MS = 160;
+
+function motionReduced(): boolean {
+  return (
+    typeof document !== "undefined" &&
+    document.documentElement.getAttribute("data-reduce-motion") === "true"
+  );
+}
 
 function revealStyle(index: number): CSSProperties {
   return { ["--reveal-i" as string]: index };
@@ -65,7 +74,10 @@ export default function Home() {
   const [stackVisible, setStackVisible] = useState(false);
   const [resultsVisible, setResultsVisible] = useState(false);
   const [resultsLeaving, setResultsLeaving] = useState(false);
+  const [revealDone, setRevealDone] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const held = useRef<{ price: number; result: RealCostResult } | null>(null);
+  const sendButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setUnitsState(getUnits());
@@ -87,12 +99,11 @@ export default function Home() {
       setResultsLeaving(false);
       setResultsVisible(true);
       if (!cardEntered) {
-        const reduced =
-          typeof document !== "undefined" &&
-          document.documentElement.getAttribute("data-reduce-motion") === "true";
+        const reduced = motionReduced();
         const openId = requestAnimationFrame(() => setCardEntered(true));
         const visibleTimer = window.setTimeout(() => {
           setStackVisible(true);
+          if (reduced) setRevealDone(true);
           triggerHaptic([8, 30, 12]);
         }, reduced ? 0 : STACK_VISIBLE_DELAY_MS);
         return () => {
@@ -105,17 +116,29 @@ export default function Home() {
     }
 
     if (!hasPrice && resultsVisible) {
+      const reduced = motionReduced();
       setResultsLeaving(true);
       setCardEntered(false);
       setStackVisible(false);
+      setRevealDone(false);
+      setCollapsed(false);
       const timer = window.setTimeout(() => {
         setResultsVisible(false);
         setResultsLeaving(false);
         held.current = null;
-      }, CLEAR_FADE_MS);
+      }, reduced ? 0 : CLEAR_FADE_MS);
       return () => window.clearTimeout(timer);
     }
   }, [hasPrice, liveResult, priceNum, cardEntered, stackVisible, resultsVisible]);
+
+  useEffect(() => {
+    if (lockedChoice === null) {
+      setCollapsed(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setCollapsed(true), motionReduced() ? 0 : COLLAPSE_FADE_MS);
+    return () => window.clearTimeout(timer);
+  }, [lockedChoice]);
 
   const beginNewPriceSession = () => {
     setLockedChoice(null);
@@ -168,6 +191,7 @@ export default function Home() {
       categoryLabel: categoryLabel,
     });
     setLockedChoice(c);
+    setRevealDone(true);
     setStreak(getPausedStreak());
     setActiveDecision({ choice: c, hours: liveResult.hours, price: priceNum });
     triggerHaptic(10);
@@ -212,7 +236,7 @@ export default function Home() {
       track("share_completed", { method: "clipboard", challenge: asChallenge });
       triggerHaptic([10, 40, 14]);
       markA2HSPeak("share");
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 1600);
     }
   };
 
@@ -224,6 +248,7 @@ export default function Home() {
   const onPriceChange = (next: string) => {
     const previous = parseFloat(price);
     setPrice(next);
+    if (stackVisible) setRevealDone(true);
     beginNewPriceSession();
     const parsed = parseFloat(next);
     if (parsed > 0 && !(previous > 0)) track("calculation_created");
@@ -249,7 +274,9 @@ export default function Home() {
               <div
                 className={`home-reveal-stack${stackVisible && !resultsLeaving ? " is-visible" : ""}${
                   resultsLeaving ? " is-leaving" : ""
-                }${decisionCommitted ? " is-decided" : ""}`}
+                }${decisionCommitted ? " is-decided" : ""}${revealDone ? " is-revealed" : ""}${
+                  collapsed ? " is-collapsed" : ""
+                }`}
               >
                 <div className="home-reveal-item" style={revealStyle(0)}>
                   <ResultCard
@@ -258,7 +285,6 @@ export default function Home() {
                     label={name || undefined}
                     categoryLabel={categoryLabel}
                     dinnerLabel={dinnerLabel}
-                    animateEnter={false}
                   />
                 </div>
 
@@ -313,15 +339,24 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="home-reveal-item" style={revealStyle(4)}>
+                <div
+                  className="home-reveal-item"
+                  style={revealStyle(4)}
+                  onAnimationEnd={(event: AnimationEvent<HTMLDivElement>) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.animationName !== "reveal-rise") return;
+                    setRevealDone(true);
+                  }}
+                >
                   <div className="flex flex-col gap-2 w-full">
                     <button
+                      ref={sendButtonRef}
                       type="button"
                       onClick={() => void handleShare(false)}
                       className="primary-action pressable w-full"
                       disabled={resultsLeaving || !hasPrice}
                     >
-                      {copied ? "Link copied" : "Send this price"}
+                      <CopyConfirm label={copied ? "Link copied" : "Send this price"} labels={["Send this price", "Link copied"]} />
                     </button>
                     <button
                       type="button"
@@ -346,6 +381,7 @@ export default function Home() {
       {activeDecision && (
         <DecisionSheet
           choice={activeDecision.choice}
+          returnFocusRef={sendButtonRef}
           onClose={() => setActiveDecision(null)}
           secondaryLabel="Send this price"
           onSecondary={() => {
