@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatDinners, formatHours, formatMoney, formatShifts } from "@/lib/calc";
+import { formatDinners, formatMoney, formatShifts } from "@/lib/calc";
 import type { RealCostResult } from "@/lib/calc";
 import HoursOdometer from "@/components/HoursOdometer";
 import LifeSpanGloss from "@/components/LifeSpanGloss";
@@ -10,8 +10,6 @@ export default function ResultCard({
   price,
   result,
   label,
-  compareLabel,
-  compareHours,
   categoryLabel,
   dinnerLabel,
   animateEnter = false,
@@ -19,8 +17,6 @@ export default function ResultCard({
   price: number;
   result: RealCostResult;
   label?: string;
-  compareLabel?: string;
-  compareHours?: number;
   categoryLabel?: string;
   dinnerLabel?: string;
   animateEnter?: boolean;
@@ -54,24 +50,6 @@ export default function ResultCard({
         <span className="text-[var(--border)]">·</span>
         <span>{formatDinners(result.dinners, dinnerName)}</span>
       </div>
-
-      {compareLabel !== undefined && compareHours !== undefined && (
-        <div className="mt-6 pt-6 border-t border-[var(--border)] w-full flex flex-col gap-3">
-          <span className="text-xs uppercase tracking-widest text-[var(--subtle)]">
-            same price, different life
-          </span>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-[var(--muted)]">You</span>
-            <span className="text-[var(--foreground)] font-medium tabular-nums">{formatHours(result.hours)}</span>
-          </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-[var(--muted)]">{compareLabel}</span>
-            <span className="text-[var(--foreground)] font-medium tabular-nums">
-              {formatHours(compareHours)}
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

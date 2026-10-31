@@ -1,15 +1,13 @@
-import { formatHours, formatLifeSpan, formatMoney } from "./calc";
+import { formatHours, formatMoney } from "./calc";
 import { type ShareCardFormat, canvasSizeForFormat } from "./shareFormats";
+import { sharePosterContent } from "./sharePosterContent";
 
 export type ShareImageInput = {
   price: number;
   hours: number;
   label?: string;
-  /** Friend challenge: second person’s hours. */
-  compareHours?: number;
-  compareLabel?: string;
   format?: ShareCardFormat;
-  /** Skipped “hours kept” meme card. */
+  /** Skipped “hours kept” card. Hours only, never the dollars skipped. */
   variant?: "standard" | "hoursKept";
 };
 
@@ -88,11 +86,11 @@ function storyY(base: number, height: number): number {
 
 /** Paint a RealCost share poster to a canvas (no third-party deps). */
 export function paintSharePoster(input: ShareImageInput): HTMLCanvasElement {
-  const challenge = (input.compareHours ?? 0) > 0;
-  const format: ShareCardFormat = input.format ?? (challenge ? "dual" : "poster45");
-  const { width, height } = canvasSizeForFormat(format === "dual" ? "dual" : format);
-  const isStory = format === "story916" && !challenge;
+  const format: ShareCardFormat = input.format ?? "poster45";
+  const { width, height } = canvasSizeForFormat(format);
+  const isStory = format === "story916";
   const y = (base: number) => (isStory ? storyY(base, height) : base);
+  const content = sharePosterContent(input, { formatMoney, formatHours });
 
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -128,105 +126,45 @@ export function paintSharePoster(input: ShareImageInput): HTMLCanvasElement {
 
   const hoursKept = input.variant === "hoursKept";
 
-  if (hoursKept) {
+  if (hoursKept && content.hoursLine) {
     ctx.fillStyle = palette.hours;
     ctx.font = "650 160px Outfit, system-ui, sans-serif";
-    const hoursLabel = formatHours(input.hours);
-    ctx.fillText(hoursLabel, 96, y(520));
+    ctx.fillText(content.hoursLine, 96, y(520));
 
     ctx.fillStyle = palette.meta;
     ctx.font = "500 40px Outfit, system-ui, sans-serif";
-    ctx.fillText("kept this week", 96, y(590));
-
-    const keptGloss = formatLifeSpan(input.hours);
-    let metaY = 660;
-    if (keptGloss) {
-      ctx.fillStyle = palette.meta;
-      ctx.font = "500 32px Outfit, system-ui, sans-serif";
-      ctx.fillText(keptGloss, 96, y(640));
-      metaY = 710;
-    }
-
-    if (input.price > 0) {
-      ctx.fillStyle = palette.price;
-      ctx.font = "500 36px Outfit, system-ui, sans-serif";
-      ctx.fillText(`skipped ${formatMoney(input.price)}`, 96, y(metaY));
-    }
-
-    ctx.fillStyle = palette.rule;
-    roundRect(ctx, 96, y(keptGloss ? 780 : 720), 72, 6, 3);
-    ctx.fill();
-
-    ctx.fillStyle = palette.tagline;
-    ctx.font = "550 52px Outfit, system-ui, sans-serif";
-    ctx.fillText("I almost bought it.", 96, y(980));
-
-    ctx.fillStyle = palette.cta;
-    ctx.font = "650 40px Outfit, system-ui, sans-serif";
-    ctx.fillText("What does it cost you?", 96, y(1160));
-    return canvas;
-  }
-
-  ctx.fillStyle = palette.price;
-  ctx.font = "500 42px Outfit, system-ui, sans-serif";
-  const priceText = formatMoney(input.price);
-  ctx.fillText(priceText, width - 96 - ctx.measureText(priceText).width, y(160));
-
-  if (challenge) {
-    const dualTitle = `Same ${formatMoney(input.price)}. Different lives.`;
-    ctx.fillStyle = palette.tagline;
-    ctx.font = "650 52px Outfit, system-ui, sans-serif";
-    ctx.fillText(dualTitle, 96, 280);
-
-    const youLabel = input.label?.trim() || "You";
-    const themLabel = input.compareLabel?.trim() || "Them";
-    const youHours = formatHours(input.hours);
-    const themHours = formatHours(input.compareHours!);
-
-    ctx.fillStyle = palette.meta;
-    ctx.font = "500 34px Outfit, system-ui, sans-serif";
-    ctx.fillText(youLabel, 96, 420);
-    ctx.fillText(themLabel, width / 2 + 24, 420);
-
-    ctx.fillStyle = palette.hours;
-    ctx.font = "650 92px Outfit, system-ui, sans-serif";
-    ctx.fillText(youHours, 96, 540);
-    ctx.fillText(themHours, width / 2 + 24, 540);
+    ctx.fillText(content.caption ?? "", 96, y(590));
 
     ctx.fillStyle = palette.rule;
     roundRect(ctx, 96, y(680), 72, 6, 3);
     ctx.fill();
-  } else {
-    ctx.fillStyle = palette.hours;
-    ctx.font = "650 160px Outfit, system-ui, sans-serif";
-    const hoursLabel = formatHours(input.hours);
-    ctx.fillText(hoursLabel, 96, y(520));
 
-    ctx.fillStyle = palette.meta;
-    ctx.font = "500 40px Outfit, system-ui, sans-serif";
-    const ofWork = input.label ? `of ${input.label}'s life` : "of my life";
-    ctx.fillText(ofWork, 96, y(590));
+    ctx.fillStyle = palette.tagline;
+    ctx.font = "550 52px Outfit, system-ui, sans-serif";
+    ctx.fillText(content.tagline[0] ?? "", 96, y(980));
 
-    const gloss = formatLifeSpan(input.hours);
-    if (gloss) {
-      ctx.fillStyle = palette.meta;
-      ctx.font = "500 32px Outfit, system-ui, sans-serif";
-      ctx.fillText(gloss, 96, y(640));
-    }
-
-    ctx.fillStyle = palette.rule;
-    roundRect(ctx, 96, y(gloss ? 720 : 680), 72, 6, 3);
-    ctx.fill();
+    ctx.fillStyle = palette.cta;
+    ctx.font = "650 40px Outfit, system-ui, sans-serif";
+    ctx.fillText(content.cta, 96, y(1160));
+    return canvas;
   }
+
+  ctx.fillStyle = palette.hours;
+  ctx.font = "650 120px Outfit, system-ui, sans-serif";
+  ctx.fillText(content.priceLine ?? "", 96, y(520));
+
+  ctx.fillStyle = palette.rule;
+  roundRect(ctx, 96, y(680), 72, 6, 3);
+  ctx.fill();
 
   ctx.fillStyle = palette.tagline;
   ctx.font = "550 52px Outfit, system-ui, sans-serif";
-  ctx.fillText("Same dollars.", 96, y(980));
-  ctx.fillText("Different life.", 96, y(1050));
+  ctx.fillText(content.tagline[0] ?? "", 96, y(980));
+  ctx.fillText(content.tagline[1] ?? "", 96, y(1050));
 
   ctx.fillStyle = palette.cta;
   ctx.font = "650 40px Outfit, system-ui, sans-serif";
-  ctx.fillText("What does it cost you?", 96, y(1160));
+  ctx.fillText(content.cta, 96, y(1160));
 
   return canvas;
 }

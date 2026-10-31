@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -11,66 +11,60 @@ import {
   US_MEDIAN_HOURLY_WAGE,
 } from "@/lib/calc";
 import { clampWage } from "@/lib/limits";
-import {
-  addComparisonEntry,
-  applyShareReaction,
-  getPersonalization,
-  setUnits,
-  setName,
-  DEFAULT_PERSONALIZATION,
-} from "@/lib/storage";
+import { addComparisonEntry, applyShareReaction, setUnits, setName } from "@/lib/storage";
+import { useComparisonLog, usePersonalization } from "@/lib/useLocalData";
 import { getCompareIntroCopy, getCompareRevealCopy } from "@/lib/copy";
 import { decodeComparison, encodeComparison, shareText } from "@/lib/sharing";
-import { getSharePrivacy } from "@/lib/sharePrivacy";
 import { track } from "@/lib/analytics";
 import { sanitizeDecimalInput } from "@/lib/numericInput";
 import { triggerHaptic } from "@/lib/haptics";
 import HoursOdometer from "@/components/HoursOdometer";
 import LifeSpanGloss from "@/components/LifeSpanGloss";
-import ShareCard from "@/components/ShareCard";
 import PageEnter from "@/components/PageEnter";
 
 export default function CompareClient() {
+  const router = useRouter();
   const params = useSearchParams();
   const decoded = decodeComparison(params);
   const price = decoded?.price ?? 0;
-  const theirHours = decoded?.hours;
   const shareId = decoded?.shareId;
   const isReply = Boolean(decoded?.isReply);
-  const hasPeerHours = typeof theirHours === "number" && theirHours > 0 && !isReply;
   const [wage, setWage] = useState("");
   const [myName, setMyName] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [reacted, setReacted] = useState(false);
-  const [reactionBanner, setReactionBanner] = useState<string | null>(null);
-  const [tone, setTone] = useState(DEFAULT_PERSONALIZATION.tone);
-  const [showCard, setShowCard] = useState(false);
+  const tone = usePersonalization().tone;
+  const comparisons = useComparisonLog();
 
   useEffect(() => {
-    setTone((getPersonalization() ?? DEFAULT_PERSONALIZATION).tone);
-    if (price > 0 && !isReply) track("comparison_opened", { has_peer_hours: hasPeerHours });
-    if (typeof window !== "undefined" && window.location.search.includes("n=")) {
-      const clean = new URL(window.location.href);
-      clean.searchParams.delete("n");
-      window.history.replaceState({}, "", clean.pathname + clean.search);
-    }
-  }, [price, hasPeerHours, isReply]);
+    const current = new URL(window.location.href);
+    if (!current.searchParams.has("h") && !current.searchParams.has("n")) return;
+    current.searchParams.delete("h");
+    current.searchParams.delete("n");
+    router.replace(`${current.pathname}${current.search}`, { scroll: false });
+  }, [router, params]);
+
+  useEffect(() => {
+    if (price > 0 && !isReply) track("comparison_opened");
+  }, [price, isReply]);
 
   useEffect(() => {
     if (!isReply || !shareId) return;
-    const updated = applyShareReaction(shareId, theirHours);
-    if (updated) {
-      track("reaction_received", { has_hours: Boolean(theirHours) });
-      setReactionBanner(
-        theirHours
-          ? `Friend reacted: ${formatHours(theirHours)} for ${formatMoney(price)}.`
-          : "Friend opened your RealCost."
-      );
-    } else {
-      setReactionBanner("Reaction noted on this device when the original share exists here.");
-    }
-  }, [isReply, shareId, theirHours, price]);
+    const updated = applyShareReaction(shareId);
+    if (updated) track("reaction_received");
+  }, [isReply, shareId]);
+
+  const reactionFound =
+    comparisons != null &&
+    Boolean(shareId && comparisons.some((entry) => entry.role === "sent" && entry.shareId === shareId));
+  const reactionBanner = !isReply
+    ? null
+    : comparisons == null
+      ? null
+      : reactionFound
+        ? `Your friend checked what ${formatMoney(price)} costs them.`
+        : "Reaction noted on this device when the original share exists here.";
 
   const wageNum = parseFloat(wage);
   const canReveal = wageNum > 0 && price > 0;
@@ -88,7 +82,7 @@ export default function CompareClient() {
 
   const onWageChange = (raw: string) => setWage(sanitizeDecimalInput(raw));
 
-  const handleReveal = () => {
+  const handleReveal = (timestamp: number) => {
     if (!myResult) return;
     const safeWage = clampWage(wageNum);
     if (!(safeWage > 0)) return;
@@ -98,27 +92,19 @@ export default function CompareClient() {
       price,
       hours: myResult.hours,
       role: "received",
-      peerHours: hasPeerHours ? theirHours : undefined,
       myRate: safeWage,
       shareId,
-      timestamp: Date.now(),
+      timestamp,
     });
-    track("recipient_calculation_completed", { has_peer_hours: hasPeerHours });
+    track("recipient_calculation_completed");
     triggerHaptic([8, 30, 12]);
     setRevealed(true);
   };
 
   const handleReact = async () => {
     if (!myResult || !shareId) return;
-    const shareUrl = encodeComparison(
-      window.location.origin,
-      { price, hours: myResult.hours },
-      { shareId, isReply: true }
-    );
-    const text = shareText(formatMoney(price), {
-      hoursLabel: formatHours(myResult.hours),
-      isReply: true,
-    });
+    const shareUrl = encodeComparison(window.location.origin, { price }, { shareId, isReply: true });
+    const text = shareText(formatMoney(price), { isReply: true });
     track("reaction_sent");
     if (navigator.share) {
       try {
@@ -137,19 +123,11 @@ export default function CompareClient() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleShareMine = async () => {
+  const handleShareMine = async (asChallenge = false) => {
     if (!myResult) return;
-    const privacy = getSharePrivacy();
-    track("share_started", { source: "recipient", privacy });
-    const shareUrl = encodeComparison(
-      window.location.origin,
-      { price, hours: myResult.hours },
-      { privacy }
-    );
-    const text = shareText(formatMoney(price), {
-      hoursLabel: formatHours(myResult.hours),
-      privacy,
-    });
+    track("share_started", { source: "recipient", challenge: asChallenge });
+    const shareUrl = encodeComparison(window.location.origin, { price });
+    const text = shareText(formatMoney(price), { challenge: asChallenge });
 
     if (navigator.share) {
       try {
@@ -158,7 +136,7 @@ export default function CompareClient() {
           text,
           url: shareUrl,
         });
-        track("recipient_shared", { method: "native", privacy });
+        track("recipient_shared", { method: "native" });
         triggerHaptic([10, 40, 14]);
         return;
       } catch {
@@ -167,7 +145,7 @@ export default function CompareClient() {
     }
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    track("recipient_shared", { method: "clipboard", privacy });
+    track("recipient_shared", { method: "clipboard" });
     triggerHaptic([10, 40, 14]);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -204,15 +182,7 @@ export default function CompareClient() {
       <PageEnter className="w-full max-w-sm flex flex-col items-center gap-6 compare-ritual">
         <div className="flex flex-col items-center gap-2 text-center max-w-sm">
           <p className="compare-ritual-price tabular-nums">{formatMoney(price)}</p>
-          <p className="text-[var(--muted)] text-sm">
-            {hasPeerHours ? (
-              <>
-                A friend said <span className="tabular-nums font-medium">{formatHours(theirHours)}</span>. What does it cost you?
-              </>
-            ) : (
-              <>What does this cost in hours of your life?</>
-            )}
-          </p>
+          <p className="text-[var(--muted)] text-sm">What does this cost in hours of your life?</p>
           {!revealed ? (
             <>
               <p className="text-[var(--subtle)] text-xs tabular-nums">
@@ -244,7 +214,7 @@ export default function CompareClient() {
             <p className="text-[var(--subtle)] text-xs text-center" style={{ margin: 0 }}>
               Enter your rate to personalize. Wage stays on this device — never in the link.
             </p>
-            <button type="button" disabled={!canReveal} onClick={handleReveal} className="primary-action pressable w-full">
+            <button type="button" disabled={!canReveal} onClick={() => handleReveal(Date.now())} className="primary-action pressable w-full">
               See my hours
             </button>
           </div>
@@ -254,44 +224,23 @@ export default function CompareClient() {
               <div className="compare-ritual-reveal w-full flex flex-col items-center gap-3">
                 <HoursOdometer hours={myResult.hours} />
                 <LifeSpanGloss hours={myResult.hours} />
-                {hasPeerHours ? (
-                  <p className="text-[var(--muted)] text-sm text-center">
-                    Them: <span className="tabular-nums">{formatHours(theirHours)}</span>
-                  </p>
-                ) : null}
                 <p className="text-[var(--muted)] text-sm text-center max-w-xs">{getCompareRevealCopy(tone)}</p>
               </div>
 
               {shareId ? (
                 <button type="button" onClick={() => void handleReact()} className="primary-action pressable w-full">
-                  {reacted ? (copied ? "Reaction link copied" : "Reaction sent") : "React with my hours"}
+                  {reacted ? (copied ? "Copied" : "Sent") : "Tell them I checked"}
                 </button>
               ) : (
-                <button type="button" onClick={() => void handleShareMine()} className="primary-action pressable w-full">
+                <button type="button" onClick={() => void handleShareMine(false)} className="primary-action pressable w-full">
                   {copied ? "Link copied" : "Send this back"}
                 </button>
               )}
 
               {shareId ? (
-                <button type="button" onClick={() => void handleShareMine()} className="link-action">
+                <button type="button" onClick={() => void handleShareMine(true)} className="link-action">
                   {copied && !reacted ? "Link copied" : "Or share a new challenge"}
                 </button>
-              ) : null}
-
-              <button type="button" className="link-action" onClick={() => setShowCard((v) => !v)}>
-                {showCard ? "Hide card" : "Save dual card"}
-              </button>
-
-              {showCard ? (
-                <div className="share-motion share-motion-enter w-full">
-                  <ShareCard
-                    price={price}
-                    hours={myResult.hours}
-                    label={myName || undefined}
-                    compareHours={hasPeerHours ? theirHours : undefined}
-                    compareLabel={hasPeerHours ? "Them" : undefined}
-                  />
-                </div>
               ) : null}
 
               <details className="w-full text-sm text-[var(--muted)]">

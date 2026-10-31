@@ -1,21 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DEFAULT_UNITS } from "@/lib/calc";
-import type { Units } from "@/lib/calc";
 import {
   clearAllData,
-  getName,
-  getPersonalization,
-  getUnits,
   resetOnboarding,
   setName as setStoredName,
   setPersonalization,
   setUnits,
-  DEFAULT_PERSONALIZATION,
 } from "@/lib/storage";
+import { useDisplayName, usePersonalization, useUnits } from "@/lib/useLocalData";
 import type { SpendingFocus, Tone } from "@/lib/storage";
 import PersonalizationFields from "@/components/PersonalizationFields";
 import UnitPresetFields from "@/components/UnitPresetFields";
@@ -25,7 +21,6 @@ import ScreenHeader from "@/components/ScreenHeader";
 import { SettingsAccordion, SettingsSection } from "@/components/SettingsSection";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import BounceLoader from "@/components/BounceLoader";
-import { getSharePrivacy, setSharePrivacy, type SharePrivacy } from "@/lib/sharePrivacy";
 import { TONE_OPTIONS, SPENDING_FOCUS_OPTIONS } from "@/lib/personalizationOptions";
 import { sanitizeDecimalInput } from "@/lib/numericInput";
 
@@ -37,64 +32,22 @@ type Baseline = {
   name: string;
   spendingFocus: SpendingFocus;
   tone: Tone;
-  sharePrivacy: SharePrivacy;
 };
 
-export default function SettingsPage() {
+function SettingsForm({ seed }: { seed: Baseline }) {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [wage, setWage] = useState("");
-  const [shiftHours, setShiftHours] = useState(String(DEFAULT_UNITS.shiftHours));
-  const [dinnerCost, setDinnerCost] = useState(String(DEFAULT_UNITS.dinnerCost));
-  const [dinnerLabel, setDinnerLabel] = useState(DEFAULT_UNITS.dinnerLabel ?? "dinner out");
-  const [name, setName] = useState("");
-  const [spendingFocus, setSpendingFocus] = useState<SpendingFocus>(DEFAULT_PERSONALIZATION.spendingFocus);
-  const [tone, setTone] = useState<Tone>(DEFAULT_PERSONALIZATION.tone);
-  const [sharePrivacy, setSharePrivacyState] = useState<SharePrivacy>("private");
+  const [wage, setWage] = useState(seed.wage);
+  const [shiftHours, setShiftHours] = useState(seed.shiftHours);
+  const [dinnerCost, setDinnerCost] = useState(seed.dinnerCost);
+  const [dinnerLabel, setDinnerLabel] = useState(seed.dinnerLabel);
+  const [name, setName] = useState(seed.name);
+  const [spendingFocus, setSpendingFocus] = useState<SpendingFocus>(seed.spendingFocus);
+  const [tone, setTone] = useState<Tone>(seed.tone);
   const [saved, setSaved] = useState(false);
   const [unitsOpen, setUnitsOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
-  const [baseline, setBaseline] = useState<Baseline | null>(null);
-  const [confirmAction, setConfirmAction] = useState<"reset" | "replay" | "exact" | null>(null);
-
-  useEffect(() => {
-    const units: Units | null = getUnits();
-    const nextWage = units ? String(units.hourlyWage) : "";
-    const nextShift = units ? String(units.shiftHours) : String(DEFAULT_UNITS.shiftHours);
-    const nextDinner = units ? String(units.dinnerCost) : String(DEFAULT_UNITS.dinnerCost);
-    const nextDinnerLabel = units?.dinnerLabel?.trim() || DEFAULT_UNITS.dinnerLabel || "dinner out";
-    const nextName = getName();
-    const personalization = getPersonalization() ?? DEFAULT_PERSONALIZATION;
-    const nextPrivacy = getSharePrivacy();
-
-    setWage(nextWage);
-    setShiftHours(nextShift);
-    setDinnerCost(nextDinner);
-    setDinnerLabel(nextDinnerLabel);
-    setName(nextName);
-    setSpendingFocus(personalization.spendingFocus);
-    setTone(personalization.tone);
-    setSharePrivacyState(nextPrivacy);
-    setBaseline({
-      wage: nextWage,
-      shiftHours: nextShift,
-      dinnerCost: nextDinner,
-      dinnerLabel: nextDinnerLabel,
-      name: nextName,
-      spendingFocus: personalization.spendingFocus,
-      tone: personalization.tone,
-      sharePrivacy: nextPrivacy,
-    });
-    setReady(true);
-  }, []);
-
-  if (!ready || !baseline) {
-    return (
-      <main className="screen-shell">
-        <BounceLoader label="Loading Settings" />
-      </main>
-    );
-  }
+  const [baseline, setBaseline] = useState<Baseline>(seed);
+  const [confirmAction, setConfirmAction] = useState<"reset" | "replay" | null>(null);
 
   const wageNum = parseFloat(wage);
   const dirty =
@@ -104,8 +57,7 @@ export default function SettingsPage() {
     dinnerLabel !== baseline.dinnerLabel ||
     name !== baseline.name ||
     spendingFocus !== baseline.spendingFocus ||
-    tone !== baseline.tone ||
-    sharePrivacy !== baseline.sharePrivacy;
+    tone !== baseline.tone;
   const canSave = wageNum > 0 && dirty;
   const toneLabel = TONE_OPTIONS.find((o) => o.value === tone)?.label ?? "Gently";
   const focusLabel = SPENDING_FOCUS_OPTIONS.find((o) => o.value === spendingFocus)?.label ?? "Not sure";
@@ -121,7 +73,6 @@ export default function SettingsPage() {
       name,
       spendingFocus,
       tone,
-      sharePrivacy,
     };
     setUnits({
       hourlyWage: wageNum,
@@ -131,7 +82,6 @@ export default function SettingsPage() {
     });
     setStoredName(name);
     setPersonalization({ spendingFocus, tone });
-    setSharePrivacy(sharePrivacy);
     setWage(next.wage);
     setShiftHours(next.shiftHours);
     setDinnerCost(next.dinnerCost);
@@ -147,11 +97,6 @@ export default function SettingsPage() {
   const handleRedoOnboarding = () => setConfirmAction("replay");
 
   const runConfirmAction = () => {
-    if (confirmAction === "exact") {
-      setSharePrivacyState("exact");
-      setConfirmAction(null);
-      return;
-    }
     if (confirmAction === "reset") {
       clearAllData();
       window.dispatchEvent(new Event("realcost:units-updated"));
@@ -221,34 +166,12 @@ export default function SettingsPage() {
           <AppearanceControls />
         </SettingsSection>
 
-        <SettingsSection title="Sharing" description="Private links share price only so wage cannot be reverse-engineered.">
-          <div className="segmented segmented-wide" role="radiogroup" aria-label="Share privacy">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={sharePrivacy === "private"}
-              className={`segmented-item pressable${sharePrivacy === "private" ? " is-active" : ""}`}
-              onClick={() => setSharePrivacyState("private")}
-            >
-              Private
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={sharePrivacy === "exact"}
-              className={`segmented-item pressable${sharePrivacy === "exact" ? " is-active" : ""}`}
-              onClick={() => {
-                if (sharePrivacy === "exact") return;
-                setConfirmAction("exact");
-              }}
-            >
-              Include hours
-            </button>
-          </div>
+        <SettingsSection
+          title="Sharing"
+          description="Links never include hours. A friend only gets the price, then works out their own hours on their device."
+        >
           <p className="settings-inline-note">
-            {sharePrivacy === "private"
-              ? "Recommended for posts and group chats."
-              : "Only for people you trust. Hours can reveal approximate take-home rate."}
+            Price or hours, never both. That keeps your wage on this device.
           </p>
         </SettingsSection>
 
@@ -309,15 +232,6 @@ export default function SettingsPage() {
         </SettingsSection>
       </PageEnter>
       <ConfirmDialog
-        open={confirmAction === "exact"}
-        title="Include hours in shares?"
-        body="Anyone with the link can see the hours. With the price, they can estimate your take-home rate. Only use this with people you trust."
-        confirmLabel="Include hours"
-        destructive={false}
-        onConfirm={runConfirmAction}
-        onCancel={() => setConfirmAction(null)}
-      />
-      <ConfirmDialog
         open={confirmAction === "reset"}
         title="Reset RealCost?"
         body="This clears your rate, history, and comparisons from this device. You can’t undo it."
@@ -336,4 +250,27 @@ export default function SettingsPage() {
       />
     </main>
   );
+}
+
+export default function SettingsPage() {
+  const units = useUnits();
+  const storedName = useDisplayName();
+  const personalization = usePersonalization();
+  if (units === undefined) {
+    return (
+      <main className="screen-shell">
+        <BounceLoader label="Loading Settings" />
+      </main>
+    );
+  }
+  const seed: Baseline = {
+    wage: units ? String(units.hourlyWage) : "",
+    shiftHours: units ? String(units.shiftHours) : String(DEFAULT_UNITS.shiftHours),
+    dinnerCost: units ? String(units.dinnerCost) : String(DEFAULT_UNITS.dinnerCost),
+    dinnerLabel: units?.dinnerLabel?.trim() || DEFAULT_UNITS.dinnerLabel || "dinner out",
+    name: storedName,
+    spendingFocus: personalization.spendingFocus,
+    tone: personalization.tone,
+  };
+  return <SettingsForm seed={seed} />;
 }

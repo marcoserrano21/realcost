@@ -61,8 +61,7 @@ html[data-reduce-motion="true"] .share-card {
   transition: none;
 }
 
-.share-card--poster45,
-.share-card--dual {
+.share-card--poster45 {
   aspect-ratio: 4 / 5;
   width: 100%;
   max-width: 24rem;

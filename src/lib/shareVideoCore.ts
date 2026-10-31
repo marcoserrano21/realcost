@@ -45,7 +45,11 @@ export function extensionForMime(mime: string): "webm" | "mp4" {
   return mime.includes("mp4") ? "mp4" : "webm";
 }
 
-/** Gate video export: reduced motion, missing MIME, or non-standard card. */
+/**
+ * Gate video export.
+ * Standard posters are price-only, so there is no hours reel to record.
+ * Returning false is the smaller change versus animating the price.
+ */
 export function canExportShareVideo(opts: {
   reduceMotion: boolean;
   mimeType: string | null;
@@ -56,5 +60,5 @@ export function canExportShareVideo(opts: {
   if (!opts.mimeType) return false;
   if (opts.variant === "hoursKept") return false;
   if (opts.challenge) return false;
-  return true;
+  return false;
 }

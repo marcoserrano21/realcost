@@ -25,10 +25,10 @@ export default function PrivacyPage() {
       <h2>2. Summary</h2>
       <ul>
         <li>Your take-home rate, name, decisions, and history are stored in your browser on your device by default.</li>
-        <li>Wage is never placed in a share URL.</li>
-        <li>Default share links include price only (Private mode).</li>
-        <li>Optional Exact mode adds hours to a link; that can reveal approximate rate (price ÷ hours).</li>
-        <li>Privacy-safe funnel analytics may record events without wages, rates, emails, or names.</li>
+        <li>Wage is never placed in a share URL, share image, or analytics event.</li>
+        <li>Share links include the price only. Hours stay on each device.</li>
+        <li>A share never includes both a price and hours, because that pair reveals an approximate rate.</li>
+        <li>Privacy-safe funnel analytics record allowlisted events without wages, rates, emails, names, or numbers.</li>
       </ul>
 
       <h2>3. Information stored on your device</h2>
@@ -39,7 +39,6 @@ export default function PrivacyPage() {
         <li>Personalization (tone, spending focus) and appearance preferences (theme, motion)</li>
         <li>Decision history (price, hours estimate, Bought / Thinking / Skipped, category, timestamps)</li>
         <li>Comparison history (sent/received prices and hours, timestamps)</li>
-        <li>Share privacy mode (Private or Exact)</li>
         <li>Onboarding / welcome flags and a local analytics event queue</li>
       </ul>
       <p>
@@ -61,16 +60,13 @@ export default function PrivacyPage() {
 
       <h2>5. Sharing and screenshots</h2>
       <p>
-        <strong>Private (default):</strong> comparison links include price only. Recipients enter their own rate. Your
-        hours and approximate wage stay off the link.
+        Comparison links include the price only. Recipients enter their own rate and see their own hours. Your hours
+        and approximate wage stay off the link.
       </p>
       <p>
-        <strong>Exact hours (optional):</strong> links include price and hours. Anyone with the link can estimate
-        take-home rate as price ÷ hours. Use only with people you trust.
-      </p>
-      <p>
-        Screenshots and screen recordings capture whatever is visible (including hours). Prefer Private links for public
-        posts. You control what you publish.
+        Share images follow the same rule. A price poster does not include hours. An hours-kept poster does not include
+        a dollar amount. Screenshots of the calculator itself can still show hours, because that screen is on your device.
+        You control what you publish.
       </p>
 
       <h2>6. Analytics</h2>

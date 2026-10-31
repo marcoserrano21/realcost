@@ -10,12 +10,7 @@ test("story916 is 1080x1920", () => {
   assert.deepEqual(canvasSizeForFormat("story916"), { width: 1080, height: 1920 });
 });
 
-test("dual uses 1080x1350", () => {
-  assert.deepEqual(canvasSizeForFormat("dual"), { width: 1080, height: 1350 });
-});
-
 test("aspect classes match formats", () => {
   assert.equal(aspectClassForFormat("poster45"), "share-card--poster45");
   assert.equal(aspectClassForFormat("story916"), "share-card--story916");
-  assert.equal(aspectClassForFormat("dual"), "share-card--dual");
 });
