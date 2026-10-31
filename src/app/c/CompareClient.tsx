@@ -11,14 +11,8 @@ import {
   US_MEDIAN_HOURLY_WAGE,
 } from "@/lib/calc";
 import { clampWage } from "@/lib/limits";
-import {
-  addComparisonEntry,
-  applyShareReaction,
-  getPersonalization,
-  setUnits,
-  setName,
-  DEFAULT_PERSONALIZATION,
-} from "@/lib/storage";
+import { addComparisonEntry, applyShareReaction, setUnits, setName } from "@/lib/storage";
+import { useComparisonLog, usePersonalization } from "@/lib/useLocalData";
 import { getCompareIntroCopy, getCompareRevealCopy } from "@/lib/copy";
 import { decodeComparison, encodeComparison, shareText } from "@/lib/sharing";
 import { track } from "@/lib/analytics";
@@ -40,8 +34,8 @@ export default function CompareClient() {
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [reacted, setReacted] = useState(false);
-  const [reactionBanner, setReactionBanner] = useState<string | null>(null);
-  const [tone, setTone] = useState(DEFAULT_PERSONALIZATION.tone);
+  const tone = usePersonalization().tone;
+  const comparisons = useComparisonLog();
 
   useEffect(() => {
     const current = new URL(window.location.href);
@@ -52,20 +46,25 @@ export default function CompareClient() {
   }, [router, params]);
 
   useEffect(() => {
-    setTone((getPersonalization() ?? DEFAULT_PERSONALIZATION).tone);
     if (price > 0 && !isReply) track("comparison_opened");
   }, [price, isReply]);
 
   useEffect(() => {
     if (!isReply || !shareId) return;
     const updated = applyShareReaction(shareId);
-    if (updated) {
-      track("reaction_received");
-      setReactionBanner(`Your friend checked what ${formatMoney(price)} costs them.`);
-    } else {
-      setReactionBanner("Reaction noted on this device when the original share exists here.");
-    }
-  }, [isReply, shareId, price]);
+    if (updated) track("reaction_received");
+  }, [isReply, shareId]);
+
+  const reactionFound =
+    comparisons != null &&
+    Boolean(shareId && comparisons.some((entry) => entry.role === "sent" && entry.shareId === shareId));
+  const reactionBanner = !isReply
+    ? null
+    : comparisons == null
+      ? null
+      : reactionFound
+        ? `Your friend checked what ${formatMoney(price)} costs them.`
+        : "Reaction noted on this device when the original share exists here.";
 
   const wageNum = parseFloat(wage);
   const canReveal = wageNum > 0 && price > 0;
@@ -83,7 +82,7 @@ export default function CompareClient() {
 
   const onWageChange = (raw: string) => setWage(sanitizeDecimalInput(raw));
 
-  const handleReveal = () => {
+  const handleReveal = (timestamp: number) => {
     if (!myResult) return;
     const safeWage = clampWage(wageNum);
     if (!(safeWage > 0)) return;
@@ -95,7 +94,7 @@ export default function CompareClient() {
       role: "received",
       myRate: safeWage,
       shareId,
-      timestamp: Date.now(),
+      timestamp,
     });
     track("recipient_calculation_completed");
     triggerHaptic([8, 30, 12]);
@@ -215,7 +214,7 @@ export default function CompareClient() {
             <p className="text-[var(--subtle)] text-xs text-center" style={{ margin: 0 }}>
               Enter your rate to personalize. Wage stays on this device — never in the link.
             </p>
-            <button type="button" disabled={!canReveal} onClick={handleReveal} className="primary-action pressable w-full">
+            <button type="button" disabled={!canReveal} onClick={() => handleReveal(Date.now())} className="primary-action pressable w-full">
               See my hours
             </button>
           </div>

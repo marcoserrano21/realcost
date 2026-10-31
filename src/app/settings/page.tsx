@@ -1,21 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DEFAULT_UNITS } from "@/lib/calc";
-import type { Units } from "@/lib/calc";
 import {
   clearAllData,
-  getName,
-  getPersonalization,
-  getUnits,
   resetOnboarding,
   setName as setStoredName,
   setPersonalization,
   setUnits,
-  DEFAULT_PERSONALIZATION,
 } from "@/lib/storage";
+import { useDisplayName, usePersonalization, useUnits } from "@/lib/useLocalData";
 import type { SpendingFocus, Tone } from "@/lib/storage";
 import PersonalizationFields from "@/components/PersonalizationFields";
 import UnitPresetFields from "@/components/UnitPresetFields";
@@ -38,57 +34,20 @@ type Baseline = {
   tone: Tone;
 };
 
-export default function SettingsPage() {
+function SettingsForm({ seed }: { seed: Baseline }) {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [wage, setWage] = useState("");
-  const [shiftHours, setShiftHours] = useState(String(DEFAULT_UNITS.shiftHours));
-  const [dinnerCost, setDinnerCost] = useState(String(DEFAULT_UNITS.dinnerCost));
-  const [dinnerLabel, setDinnerLabel] = useState(DEFAULT_UNITS.dinnerLabel ?? "dinner out");
-  const [name, setName] = useState("");
-  const [spendingFocus, setSpendingFocus] = useState<SpendingFocus>(DEFAULT_PERSONALIZATION.spendingFocus);
-  const [tone, setTone] = useState<Tone>(DEFAULT_PERSONALIZATION.tone);
+  const [wage, setWage] = useState(seed.wage);
+  const [shiftHours, setShiftHours] = useState(seed.shiftHours);
+  const [dinnerCost, setDinnerCost] = useState(seed.dinnerCost);
+  const [dinnerLabel, setDinnerLabel] = useState(seed.dinnerLabel);
+  const [name, setName] = useState(seed.name);
+  const [spendingFocus, setSpendingFocus] = useState<SpendingFocus>(seed.spendingFocus);
+  const [tone, setTone] = useState<Tone>(seed.tone);
   const [saved, setSaved] = useState(false);
   const [unitsOpen, setUnitsOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
-  const [baseline, setBaseline] = useState<Baseline | null>(null);
+  const [baseline, setBaseline] = useState<Baseline>(seed);
   const [confirmAction, setConfirmAction] = useState<"reset" | "replay" | null>(null);
-
-  useEffect(() => {
-    const units: Units | null = getUnits();
-    const nextWage = units ? String(units.hourlyWage) : "";
-    const nextShift = units ? String(units.shiftHours) : String(DEFAULT_UNITS.shiftHours);
-    const nextDinner = units ? String(units.dinnerCost) : String(DEFAULT_UNITS.dinnerCost);
-    const nextDinnerLabel = units?.dinnerLabel?.trim() || DEFAULT_UNITS.dinnerLabel || "dinner out";
-    const nextName = getName();
-    const personalization = getPersonalization() ?? DEFAULT_PERSONALIZATION;
-
-    setWage(nextWage);
-    setShiftHours(nextShift);
-    setDinnerCost(nextDinner);
-    setDinnerLabel(nextDinnerLabel);
-    setName(nextName);
-    setSpendingFocus(personalization.spendingFocus);
-    setTone(personalization.tone);
-    setBaseline({
-      wage: nextWage,
-      shiftHours: nextShift,
-      dinnerCost: nextDinner,
-      dinnerLabel: nextDinnerLabel,
-      name: nextName,
-      spendingFocus: personalization.spendingFocus,
-      tone: personalization.tone,
-    });
-    setReady(true);
-  }, []);
-
-  if (!ready || !baseline) {
-    return (
-      <main className="screen-shell">
-        <BounceLoader label="Loading Settings" />
-      </main>
-    );
-  }
 
   const wageNum = parseFloat(wage);
   const dirty =
@@ -291,4 +250,27 @@ export default function SettingsPage() {
       />
     </main>
   );
+}
+
+export default function SettingsPage() {
+  const units = useUnits();
+  const storedName = useDisplayName();
+  const personalization = usePersonalization();
+  if (units === undefined) {
+    return (
+      <main className="screen-shell">
+        <BounceLoader label="Loading Settings" />
+      </main>
+    );
+  }
+  const seed: Baseline = {
+    wage: units ? String(units.hourlyWage) : "",
+    shiftHours: units ? String(units.shiftHours) : String(DEFAULT_UNITS.shiftHours),
+    dinnerCost: units ? String(units.dinnerCost) : String(DEFAULT_UNITS.dinnerCost),
+    dinnerLabel: units?.dinnerLabel?.trim() || DEFAULT_UNITS.dinnerLabel || "dinner out",
+    name: storedName,
+    spendingFocus: personalization.spendingFocus,
+    tone: personalization.tone,
+  };
+  return <SettingsForm seed={seed} />;
 }

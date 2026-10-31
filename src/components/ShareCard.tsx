@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { formatHours, formatMoney } from "@/lib/calc";
 import { downloadShareImage } from "@/lib/shareImage";
-import { downloadShareVideo, shouldExportShareVideo } from "@/lib/shareVideo";
+import { downloadShareVideo } from "@/lib/shareVideo";
 import { aspectClassForFormat, type ShareCardFormat } from "@/lib/shareFormats";
 import { sharePosterContent } from "@/lib/sharePosterContent";
 import { track } from "@/lib/analytics";
@@ -21,22 +21,11 @@ export default function ShareCard({
   const cardRef = useRef<HTMLElement>(null);
   const [saving, setSaving] = useState(false);
   const [savingVideo, setSavingVideo] = useState(false);
-  const [videoAvailable, setVideoAvailable] = useState(false);
   const [format, setFormat] = useState<ShareCardFormat>("poster45");
   const activeFormat: ShareCardFormat = variant === "hoursKept" ? "poster45" : format;
   const thumbIndex = activeFormat === "story916" ? 1 : 0;
   const content = sharePosterContent({ price, hours, variant }, { formatMoney, formatHours });
-
-  useEffect(() => {
-    setVideoAvailable(
-      shouldExportShareVideo({
-        price,
-        hours,
-        format: activeFormat,
-        variant,
-      })
-    );
-  }, [price, hours, activeFormat, variant]);
+  const videoAvailable = false;
 
   const saveImage = async () => {
     setSaving(true);

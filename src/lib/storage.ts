@@ -41,6 +41,11 @@ export const DEFAULT_PERSONALIZATION: Personalization = {
   tone: "gentle",
 };
 
+export function notifyClientStore() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event("realcost:store"));
+}
+
 function safeParse<T>(raw: string | null): T | null {
   if (!raw) return null;
   try {
@@ -73,6 +78,7 @@ export function getPersonalization(): Personalization | null {
 export function setPersonalization(personalization: Personalization) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(PERSONALIZATION_KEY, JSON.stringify(personalization));
+  notifyClientStore();
 }
 
 export function getUnits(): Units | null {
@@ -85,7 +91,22 @@ export function getUnits(): Units | null {
 export function setUnits(units: Units) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(UNITS_KEY, JSON.stringify(units));
+  notifyClientStore();
 }
+
+export function localRaw(key: string): string {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem(key) ?? "";
+}
+
+export const STORAGE_KEYS = {
+  units: UNITS_KEY,
+  name: NAME_KEY,
+  personalization: PERSONALIZATION_KEY,
+  log: LOG_KEY,
+  comparisons: COMPARISON_LOG_KEY,
+  welcome: WELCOME_SEEN_KEY,
+} as const;
 
 export function getName(): string {
   if (typeof window === "undefined") return "";
@@ -95,6 +116,7 @@ export function getName(): string {
 export function setName(name: string) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(NAME_KEY, name);
+  notifyClientStore();
 }
 
 export type Choice = "bought" | "skipped" | "thinking";
@@ -144,6 +166,7 @@ export function addLogEntry(entry: Omit<LogEntry, "id"> & { id?: string }): LogE
   const log = getLog();
   log.push(full);
   window.localStorage.setItem(LOG_KEY, JSON.stringify(log));
+  notifyClientStore();
   return full;
 }
 
@@ -155,6 +178,7 @@ export function updateLogChoice(id: string, choice: Choice): LogEntry | null {
   if (index < 0) return null;
   log[index] = { ...log[index], choice };
   window.localStorage.setItem(LOG_KEY, JSON.stringify(log));
+  notifyClientStore();
   return log[index];
 }
 
@@ -190,6 +214,7 @@ export function updateLogCategory(
     log[index] = next;
   }
   window.localStorage.setItem(LOG_KEY, JSON.stringify(log));
+  notifyClientStore();
   return log[index];
 }
 
@@ -199,6 +224,7 @@ export function deleteLogEntry(id: string): boolean {
   const next = log.filter((entry) => entry.id !== id);
   if (next.length === log.length) return false;
   window.localStorage.setItem(LOG_KEY, JSON.stringify(next));
+  notifyClientStore();
   return true;
 }
 
@@ -272,6 +298,7 @@ export function addComparisonEntry(entry: Omit<ComparisonEntry, "id"> & { id?: s
   const log = getComparisonLog();
   log.push(full);
   window.localStorage.setItem(COMPARISON_LOG_KEY, JSON.stringify(log));
+  notifyClientStore();
   return full;
 }
 
@@ -287,6 +314,7 @@ export function updateComparisonEntry(
   if (index < 0) return null;
   log[index] = { ...log[index], ...patch };
   window.localStorage.setItem(COMPARISON_LOG_KEY, JSON.stringify(log));
+  notifyClientStore();
   return log[index];
 }
 
@@ -306,6 +334,7 @@ export function applyShareReaction(
       typeof reactionHours === "number" && reactionHours > 0 ? reactionHours : log[index].peerHours,
   };
   window.localStorage.setItem(COMPARISON_LOG_KEY, JSON.stringify(log));
+  notifyClientStore();
   return log[index];
 }
 
@@ -315,6 +344,7 @@ export function deleteComparisonEntry(id: string): boolean {
   const next = log.filter((entry) => entry.id !== id);
   if (next.length === log.length) return false;
   window.localStorage.setItem(COMPARISON_LOG_KEY, JSON.stringify(next));
+  notifyClientStore();
   return true;
 }
 
@@ -326,11 +356,13 @@ export function hasSeenWelcome(): boolean {
 export function markWelcomeSeen() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(WELCOME_SEEN_KEY, "1");
+  notifyClientStore();
 }
 
 export function clearWelcomeSeen() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(WELCOME_SEEN_KEY);
+  notifyClientStore();
 }
 
 export function hasDismissedA2HS(): boolean {
@@ -341,6 +373,7 @@ export function hasDismissedA2HS(): boolean {
 export function markA2HSDismissed() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(A2HS_DISMISSED_KEY, "1");
+  notifyClientStore();
 }
 
 export type A2HSPeakReason = "share" | "skipped";
@@ -351,6 +384,7 @@ export function markA2HSPeak(reason: A2HSPeakReason) {
     window.localStorage.setItem(A2HS_PEAK_KEY, reason);
   }
   window.dispatchEvent(new Event("realcost:a2hs-peak"));
+  notifyClientStore();
 }
 
 export function getA2HSPeak(): A2HSPeakReason | null {
@@ -373,6 +407,7 @@ export function decisionCount(): number {
 export function clearLegacySharePrivacy() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(LEGACY_SHARE_PRIVACY_KEY);
+  notifyClientStore();
 }
 
 export function resetOnboarding() {
@@ -380,6 +415,7 @@ export function resetOnboarding() {
   [UNITS_KEY, NAME_KEY, PERSONALIZATION_KEY, WELCOME_SEEN_KEY, LEGACY_SHARE_PRIVACY_KEY].forEach(
     (key) => window.localStorage.removeItem(key)
   );
+  notifyClientStore();
 }
 
 /** Wipes every locally stored key. Used by the settings "reset" action. */
@@ -394,4 +430,5 @@ export function clearAllData() {
     WELCOME_SEEN_KEY,
     LEGACY_SHARE_PRIVACY_KEY,
   ].forEach((key) => window.localStorage.removeItem(key));
+  notifyClientStore();
 }
