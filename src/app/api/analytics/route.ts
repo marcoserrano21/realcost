@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { sanitizeProps } from "@/lib/analyticsProps";
 
 /**
  * Privacy-safe analytics sink.
@@ -18,15 +19,20 @@ export async function POST(request: NextRequest) {
     ? ((body as { events: unknown[] }).events)
     : [];
 
-  // Soft validation only. Never log wages/names.
-  const accepted = events.filter((item) => {
-    if (!item || typeof item !== "object") return false;
+  // Allowlist props before they can be stored or forwarded. Never log the raw body.
+  const accepted = events.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
     const event = (item as { event?: unknown }).event;
-    return typeof event === "string" && event.length > 0 && event.length < 64;
+    if (typeof event !== "string" || event.length === 0 || event.length >= 64) return [];
+    const rawProps = (item as { props?: unknown }).props;
+    const props =
+      rawProps && typeof rawProps === "object"
+        ? sanitizeProps(event, rawProps as Record<string, unknown>)
+        : undefined;
+    return [{ event, props }];
   });
 
   if (process.env.NODE_ENV !== "production" && accepted.length > 0) {
-    // eslint-disable-next-line no-console
     console.info("[realcost:analytics-sink]", accepted.length, "events");
   }
 

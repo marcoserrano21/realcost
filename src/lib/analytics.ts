@@ -7,6 +7,9 @@
  * and the /api/analytics sink accepts posts for future wiring.
  */
 
+import { sanitizeProps } from "./analyticsProps";
+import { getUnits } from "./storage";
+
 export type AnalyticsEvent =
   | "calculation_created"
   | "share_started"
@@ -57,13 +60,6 @@ function writeQueue(items: QueueItem[]) {
   }
 }
 
-function sanitizeProps(props?: EventProps): EventProps | undefined {
-  if (!props) return undefined;
-  return Object.fromEntries(
-    Object.entries(props).filter(([key]) => !/wage|rate|email|name/i.test(key))
-  );
-}
-
 function endpoint(): string | null {
   const configured = process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT?.trim();
   if (configured) return configured;
@@ -111,9 +107,10 @@ function flushQueue() {
 export function track(event: AnalyticsEvent, props?: EventProps) {
   if (typeof window === "undefined") return;
 
+  const wage = getUnits()?.hourlyWage;
   const payload: QueueItem = {
     event,
-    props: sanitizeProps(props),
+    props: sanitizeProps(event, props, { wage }),
     t: Date.now(),
   };
 
@@ -122,7 +119,6 @@ export function track(event: AnalyticsEvent, props?: EventProps) {
   writeQueue(queue);
 
   if (process.env.NODE_ENV !== "production") {
-    // eslint-disable-next-line no-console
     console.info("[realcost:analytics]", payload.event, payload.props ?? {});
   }
 
