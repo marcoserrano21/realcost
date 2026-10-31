@@ -25,7 +25,6 @@ import ScreenHeader from "@/components/ScreenHeader";
 import { SettingsAccordion, SettingsSection } from "@/components/SettingsSection";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import BounceLoader from "@/components/BounceLoader";
-import { getSharePrivacy, setSharePrivacy, type SharePrivacy } from "@/lib/sharePrivacy";
 import { TONE_OPTIONS, SPENDING_FOCUS_OPTIONS } from "@/lib/personalizationOptions";
 import { sanitizeDecimalInput } from "@/lib/numericInput";
 
@@ -37,7 +36,6 @@ type Baseline = {
   name: string;
   spendingFocus: SpendingFocus;
   tone: Tone;
-  sharePrivacy: SharePrivacy;
 };
 
 export default function SettingsPage() {
@@ -50,12 +48,11 @@ export default function SettingsPage() {
   const [name, setName] = useState("");
   const [spendingFocus, setSpendingFocus] = useState<SpendingFocus>(DEFAULT_PERSONALIZATION.spendingFocus);
   const [tone, setTone] = useState<Tone>(DEFAULT_PERSONALIZATION.tone);
-  const [sharePrivacy, setSharePrivacyState] = useState<SharePrivacy>("private");
   const [saved, setSaved] = useState(false);
   const [unitsOpen, setUnitsOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [baseline, setBaseline] = useState<Baseline | null>(null);
-  const [confirmAction, setConfirmAction] = useState<"reset" | "replay" | "exact" | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"reset" | "replay" | null>(null);
 
   useEffect(() => {
     const units: Units | null = getUnits();
@@ -65,7 +62,6 @@ export default function SettingsPage() {
     const nextDinnerLabel = units?.dinnerLabel?.trim() || DEFAULT_UNITS.dinnerLabel || "dinner out";
     const nextName = getName();
     const personalization = getPersonalization() ?? DEFAULT_PERSONALIZATION;
-    const nextPrivacy = getSharePrivacy();
 
     setWage(nextWage);
     setShiftHours(nextShift);
@@ -74,7 +70,6 @@ export default function SettingsPage() {
     setName(nextName);
     setSpendingFocus(personalization.spendingFocus);
     setTone(personalization.tone);
-    setSharePrivacyState(nextPrivacy);
     setBaseline({
       wage: nextWage,
       shiftHours: nextShift,
@@ -83,7 +78,6 @@ export default function SettingsPage() {
       name: nextName,
       spendingFocus: personalization.spendingFocus,
       tone: personalization.tone,
-      sharePrivacy: nextPrivacy,
     });
     setReady(true);
   }, []);
@@ -104,8 +98,7 @@ export default function SettingsPage() {
     dinnerLabel !== baseline.dinnerLabel ||
     name !== baseline.name ||
     spendingFocus !== baseline.spendingFocus ||
-    tone !== baseline.tone ||
-    sharePrivacy !== baseline.sharePrivacy;
+    tone !== baseline.tone;
   const canSave = wageNum > 0 && dirty;
   const toneLabel = TONE_OPTIONS.find((o) => o.value === tone)?.label ?? "Gently";
   const focusLabel = SPENDING_FOCUS_OPTIONS.find((o) => o.value === spendingFocus)?.label ?? "Not sure";
@@ -121,7 +114,6 @@ export default function SettingsPage() {
       name,
       spendingFocus,
       tone,
-      sharePrivacy,
     };
     setUnits({
       hourlyWage: wageNum,
@@ -131,7 +123,6 @@ export default function SettingsPage() {
     });
     setStoredName(name);
     setPersonalization({ spendingFocus, tone });
-    setSharePrivacy(sharePrivacy);
     setWage(next.wage);
     setShiftHours(next.shiftHours);
     setDinnerCost(next.dinnerCost);
@@ -147,11 +138,6 @@ export default function SettingsPage() {
   const handleRedoOnboarding = () => setConfirmAction("replay");
 
   const runConfirmAction = () => {
-    if (confirmAction === "exact") {
-      setSharePrivacyState("exact");
-      setConfirmAction(null);
-      return;
-    }
     if (confirmAction === "reset") {
       clearAllData();
       window.dispatchEvent(new Event("realcost:units-updated"));
@@ -221,34 +207,12 @@ export default function SettingsPage() {
           <AppearanceControls />
         </SettingsSection>
 
-        <SettingsSection title="Sharing" description="Private links share price only so wage cannot be reverse-engineered.">
-          <div className="segmented segmented-wide" role="radiogroup" aria-label="Share privacy">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={sharePrivacy === "private"}
-              className={`segmented-item pressable${sharePrivacy === "private" ? " is-active" : ""}`}
-              onClick={() => setSharePrivacyState("private")}
-            >
-              Private
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={sharePrivacy === "exact"}
-              className={`segmented-item pressable${sharePrivacy === "exact" ? " is-active" : ""}`}
-              onClick={() => {
-                if (sharePrivacy === "exact") return;
-                setConfirmAction("exact");
-              }}
-            >
-              Include hours
-            </button>
-          </div>
+        <SettingsSection
+          title="Sharing"
+          description="Links never include hours. A friend only gets the price, then works out their own hours on their device."
+        >
           <p className="settings-inline-note">
-            {sharePrivacy === "private"
-              ? "Recommended for posts and group chats."
-              : "Only for people you trust. Hours can reveal approximate take-home rate."}
+            Price or hours, never both. That keeps your wage on this device.
           </p>
         </SettingsSection>
 
@@ -308,15 +272,6 @@ export default function SettingsPage() {
           </button>
         </SettingsSection>
       </PageEnter>
-      <ConfirmDialog
-        open={confirmAction === "exact"}
-        title="Include hours in shares?"
-        body="Anyone with the link can see the hours. With the price, they can estimate your take-home rate. Only use this with people you trust."
-        confirmLabel="Include hours"
-        destructive={false}
-        onConfirm={runConfirmAction}
-        onCancel={() => setConfirmAction(null)}
-      />
       <ConfirmDialog
         open={confirmAction === "reset"}
         title="Reset RealCost?"

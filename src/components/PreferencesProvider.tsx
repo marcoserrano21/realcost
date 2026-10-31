@@ -10,9 +10,11 @@ import {
   type MotionPreference,
   type ThemePreference,
 } from "@/lib/preferences";
+import { clearLegacySharePrivacy } from "@/lib/storage";
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
+    clearLegacySharePrivacy();
     applyAllPreferences();
     const onPref = () => applyAllPreferences();
     const mqTheme = window.matchMedia("(prefers-color-scheme: light)");

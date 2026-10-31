@@ -7,6 +7,8 @@ const NAME_KEY = "realcost:name";
 const PERSONALIZATION_KEY = "realcost:personalization";
 const COMPARISON_LOG_KEY = "realcost:comparisons";
 const WELCOME_SEEN_KEY = "realcost:welcome_seen";
+/** Removed share-privacy setting. Cleared on load so a stale opt-in cannot linger. */
+const LEGACY_SHARE_PRIVACY_KEY = "realcost:share_privacy";
 const A2HS_DISMISSED_KEY = "realcost:a2hs_dismissed";
 const A2HS_PEAK_KEY = "realcost:a2hs_peak";
 
@@ -368,17 +370,28 @@ export function decisionCount(): number {
  * Sends the user back through onboarding without wiping history/comparisons.
  * Clears wage/units, name, personalization, and welcome flag.
  */
+export function clearLegacySharePrivacy() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(LEGACY_SHARE_PRIVACY_KEY);
+}
+
 export function resetOnboarding() {
   if (typeof window === "undefined") return;
-  [UNITS_KEY, NAME_KEY, PERSONALIZATION_KEY, WELCOME_SEEN_KEY].forEach((key) =>
-    window.localStorage.removeItem(key)
+  [UNITS_KEY, NAME_KEY, PERSONALIZATION_KEY, WELCOME_SEEN_KEY, LEGACY_SHARE_PRIVACY_KEY].forEach(
+    (key) => window.localStorage.removeItem(key)
   );
 }
 
 /** Wipes every locally stored key. Used by the settings "reset" action. */
 export function clearAllData() {
   if (typeof window === "undefined") return;
-  [UNITS_KEY, LOG_KEY, NAME_KEY, PERSONALIZATION_KEY, COMPARISON_LOG_KEY, WELCOME_SEEN_KEY].forEach(
-    (key) => window.localStorage.removeItem(key)
-  );
+  [
+    UNITS_KEY,
+    LOG_KEY,
+    NAME_KEY,
+    PERSONALIZATION_KEY,
+    COMPARISON_LOG_KEY,
+    WELCOME_SEEN_KEY,
+    LEGACY_SHARE_PRIVACY_KEY,
+  ].forEach((key) => window.localStorage.removeItem(key));
 }

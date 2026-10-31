@@ -15,7 +15,6 @@ import {
 import type { ComparisonEntry } from "@/lib/storage";
 import { getFeedEmptyCopy } from "@/lib/copy";
 import { encodeComparison, shareText } from "@/lib/sharing";
-import { getSharePrivacy } from "@/lib/sharePrivacy";
 import { shareLink } from "@/lib/nativeShare";
 import { track } from "@/lib/analytics";
 import PageEnter from "@/components/PageEnter";
@@ -23,9 +22,7 @@ import ScreenHeader from "@/components/ScreenHeader";
 import TappableExpandCard from "@/components/TappableExpandCard";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import BounceLoader from "@/components/BounceLoader";
-import ShareCard from "@/components/ShareCard";
 import { TrashIcon } from "@/components/icons";
-import { isChallengeComplete } from "@/lib/challenge";
 
 const HONESTY_KEY = "realcost:reaction_honesty_seen";
 const PAGE_SIZE = 10;
@@ -121,19 +118,6 @@ function SharedCard({
             : `They said ${formatHours(entry.peerHours)}. You said ${formatHours(entry.hours)}.`}
         </p>
       )}
-      {isChallengeComplete({ hours: entry.hours, peerHours: entry.peerHours }) ? (
-        <div className="mt-3" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-          <p className="text-xs text-[var(--champagne)] mb-2">Challenge complete · unlock dual card</p>
-          <ShareCard
-            price={entry.price}
-            hours={entry.hours}
-            compareHours={entry.peerHours}
-            compareLabel={entry.role === "sent" ? "Them" : "Them"}
-            label={entry.role === "sent" ? "You" : "You"}
-          />
-        </div>
-      ) : null}
-
       <div
         className={`history-edit-panel${isEditing ? " is-open" : ""}`}
         onClick={(e) => e.stopPropagation()}
@@ -313,16 +297,12 @@ export default function FeedPage() {
   };
 
   const handleReshare = async (entry: ComparisonEntry) => {
-    const privacy = getSharePrivacy();
     const shareUrl = encodeComparison(
       window.location.origin,
-      { price: entry.price, hours: entry.hours },
-      { privacy, shareId: entry.shareId }
+      { price: entry.price },
+      { shareId: entry.shareId }
     );
-    const text = shareText(formatMoney(entry.price), {
-      hoursLabel: formatHours(entry.hours),
-      privacy,
-    });
+    const text = shareText(formatMoney(entry.price));
     const result = await shareLink({
       title: "What does this actually cost you?",
       text,

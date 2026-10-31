@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { computeRealCost, formatHours, formatMoney } from "@/lib/calc";
+import { computeRealCost, formatMoney } from "@/lib/calc";
 import type { Units, RealCostResult } from "@/lib/calc";
 import {
   addComparisonEntry,
@@ -18,7 +18,6 @@ import {
 import type { Choice, Personalization, PurchaseCategory } from "@/lib/storage";
 import { getDecisionCopy } from "@/lib/copy";
 import { encodeComparison, newShareId, shareText } from "@/lib/sharing";
-import { getSharePrivacy } from "@/lib/sharePrivacy";
 import { shareLink } from "@/lib/nativeShare";
 import { track } from "@/lib/analytics";
 import { triggerHaptic } from "@/lib/haptics";
@@ -183,14 +182,9 @@ export default function Home() {
 
   const handleShare = async (asChallenge = false) => {
     if (!liveResult || !hasPrice) return;
-    const privacy = asChallenge ? "exact" : getSharePrivacy();
     const shareId = newShareId();
-    track("share_started", { privacy, challenge: asChallenge });
-    const shareUrl = encodeComparison(
-      window.location.origin,
-      { price: priceNum, hours: liveResult.hours },
-      { privacy, shareId }
-    );
+    track("share_started", { challenge: asChallenge });
+    const shareUrl = encodeComparison(window.location.origin, { price: priceNum }, { shareId });
 
     addComparisonEntry({
       price: priceNum,
@@ -200,10 +194,7 @@ export default function Home() {
       timestamp: Date.now(),
     });
 
-    const text = shareText(formatMoney(priceNum), {
-      hoursLabel: formatHours(liveResult.hours),
-      privacy,
-    });
+    const text = shareText(formatMoney(priceNum), { challenge: asChallenge });
 
     const result = await shareLink({
       title: asChallenge ? "Same price. What does it cost you?" : "What does this actually cost you?",
@@ -211,14 +202,14 @@ export default function Home() {
       url: shareUrl,
     });
     if (result === "shared") {
-      track("share_completed", { method: "native", privacy, challenge: asChallenge });
+      track("share_completed", { method: "native", challenge: asChallenge });
       triggerHaptic([10, 40, 14]);
       markA2HSPeak("share");
       return;
     }
     if (result === "copied") {
       setCopied(true);
-      track("share_completed", { method: "clipboard", privacy, challenge: asChallenge });
+      track("share_completed", { method: "clipboard", challenge: asChallenge });
       triggerHaptic([10, 40, 14]);
       markA2HSPeak("share");
       setTimeout(() => setCopied(false), 2000);
@@ -318,7 +309,7 @@ export default function Home() {
 
                 <div className="home-reveal-item" data-collapse="secondary" style={revealStyle(3)}>
                   <div className="share-motion w-full">
-                    <ShareCard price={displayPrice} hours={displayResult.hours} label={name || undefined} />
+                    <ShareCard price={displayPrice} />
                   </div>
                 </div>
 
