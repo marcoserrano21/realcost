@@ -1,18 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { Units } from "@/lib/calc";
 import { formatHours, formatLifeSpan, formatMoney } from "@/lib/calc";
-import {
-  getLog,
-  getPersonalization,
-  getUnits,
-  updateLogChoice,
-  updateLogCategory,
-  deleteLogEntry,
-  DEFAULT_PERSONALIZATION,
-} from "@/lib/storage";
+import { updateLogChoice, updateLogCategory, deleteLogEntry } from "@/lib/storage";
 import type { Choice, LogEntry, PurchaseCategory } from "@/lib/storage";
 import { getHistoryEmptyCopy } from "@/lib/copy";
 import { CHOICE_ICONS, TrashIcon, TagIcon } from "@/components/icons";
@@ -26,7 +17,8 @@ import CompactSelect from "@/components/CompactSelect";
 import BounceLoader from "@/components/BounceLoader";
 import { track } from "@/lib/analytics";
 import { sumHistory } from "@/lib/historyTotals";
-import { getCategoryHeat, type CategoryHeatMetric } from "@/lib/categoryHeat";
+import { type CategoryHeatMetric } from "@/lib/categoryHeat";
+import { useCategoryHeat, useDecisionLog, usePersonalization, useUnits } from "@/lib/useLocalData";
 
 const DECISION_FILTERS: { value: Choice | "all"; label: string }[] = [
   { value: "all", label: "All" },
@@ -103,40 +95,30 @@ function sortEntries(entries: LogEntry[], sort: SortMode): LogEntry[] {
 }
 
 export default function HistoryPage() {
-  const [units, setUnits] = useState<Units | null | undefined>(undefined);
-  const [log, setLog] = useState<LogEntry[]>([]);
+  const units = useUnits();
+  const log = useDecisionLog();
+  const tone = usePersonalization().tone;
   const [decisionFilter, setDecisionFilter] = useState<Choice | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<PurchaseCategory | "all">("all");
   const [sort, setSort] = useState<SortMode>("recent");
   const [dateRange, setDateRange] = useState<DateRange>("all");
-  const [page, setPage] = useState(0);
-  const [tone, setTone] = useState(DEFAULT_PERSONALIZATION.tone);
+  const filterKey = `${decisionFilter}|${categoryFilter}|${sort}|${dateRange}`;
+  const [paging, setPaging] = useState({ key: filterKey, page: 0 });
+  const page = paging.key === filterKey ? paging.page : 0;
+  const setPage = (update: number | ((current: number) => number)) => {
+    setPaging((prev) => {
+      const current = prev.key === filterKey ? prev.page : 0;
+      const next = typeof update === "function" ? update(current) : update;
+      return { key: filterKey, page: next };
+    });
+  };
   const [heatMetric, setHeatMetric] = useState<CategoryHeatMetric>("kept");
-  const [heat, setHeat] = useState(() => getCategoryHeat("kept"));
+  const heat = useCategoryHeat(heatMetric);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [categoryPanelId, setCategoryPanelId] = useState<string | null>(null);
   const [customCategory, setCustomCategory] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<LogEntry | null>(null);
-
-  const refresh = () => {
-    setLog(getLog());
-    setHeat(getCategoryHeat(heatMetric));
-  };
-
-  useEffect(() => {
-    setUnits(getUnits());
-    refresh();
-    setTone((getPersonalization() ?? DEFAULT_PERSONALIZATION).tone);
-  }, []);
-
-  useEffect(() => {
-    setHeat(getCategoryHeat(heatMetric));
-  }, [heatMetric]);
-
-  useEffect(() => {
-    setPage(0);
-  }, [decisionFilter, categoryFilter, sort, dateRange]);
 
   const filtered = useMemo(() => {
     const base = log
@@ -164,7 +146,6 @@ export default function HistoryPage() {
     track("decision_updated", { choice });
     setEditingId(null);
     setCategoryPanelId(null);
-    refresh();
   };
 
   const openCategoryPanel = (entry: LogEntry) => {
@@ -186,14 +167,12 @@ export default function HistoryPage() {
       track("category_selected", { category: "cleared", source: "history" });
       setCategoryPanelId(null);
       setCustomCategory("");
-      refresh();
       return;
     }
     if (category === "others") {
       const label = (labelOverride ?? customCategory).trim() || "Others";
       updateLogCategory(id, "others", label);
       track("category_selected", { category: "others", source: "history" });
-      refresh();
       return;
     }
     const label = PURCHASE_CATEGORY_OPTIONS.find((o) => o.value === category)?.label;
@@ -201,14 +180,12 @@ export default function HistoryPage() {
     track("category_selected", { category, source: "history" });
     setCategoryPanelId(null);
     setCustomCategory("");
-    refresh();
   };
 
   const handleSaveCustomCategory = (id: string) => {
     updateLogCategory(id, "others", customCategory.trim() || "Others");
     track("category_selected", { category: "others", source: "history" });
     setCategoryPanelId(null);
-    refresh();
   };
 
   const confirmDeleteEntry = () => {
@@ -218,7 +195,6 @@ export default function HistoryPage() {
     setPendingDelete(null);
     setEditingId(null);
     setCategoryPanelId(null);
-    refresh();
   };
 
   if (units === undefined) {

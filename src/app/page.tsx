@@ -2,27 +2,27 @@
 
 import { useEffect, useRef, useState, type AnimationEvent, type CSSProperties } from "react";
 import { computeRealCost, formatMoney } from "@/lib/calc";
-import type { Units, RealCostResult } from "@/lib/calc";
+import type { RealCostResult } from "@/lib/calc";
 import {
   addComparisonEntry,
   addLogEntry,
-  getName,
-  getPersonalization,
-  getUnits,
   getWeekSummary,
-  hasSeenWelcome,
   markWelcomeSeen,
   setUnits,
-  DEFAULT_PERSONALIZATION,
 } from "@/lib/storage";
-import type { Choice, Personalization, PurchaseCategory } from "@/lib/storage";
+import type { Choice, PurchaseCategory } from "@/lib/storage";
 import { getDecisionCopy } from "@/lib/copy";
 import { encodeComparison, newShareId, shareText } from "@/lib/sharing";
 import { shareLink } from "@/lib/nativeShare";
 import { track } from "@/lib/analytics";
 import { triggerHaptic } from "@/lib/haptics";
-import { getPausedStreak } from "@/lib/streaks";
-import type { PausedStreak } from "@/lib/streaks";
+import {
+  useDisplayName,
+  usePausedStreak,
+  usePersonalization,
+  useUnits,
+  useWelcomeSeen,
+} from "@/lib/useLocalData";
 import UnitsSetup from "@/components/UnitsSetup";
 import ResultCard from "@/components/ResultCard";
 import DecisionSheet from "@/components/DecisionSheet";
@@ -55,13 +55,14 @@ function revealStyle(index: number): CSSProperties {
 }
 
 export default function Home() {
-  const [units, setUnitsState] = useState<Units | null | undefined>(undefined);
+  const units = useUnits();
+  const name = useDisplayName();
+  const streak = usePausedStreak();
+  const personalization = usePersonalization();
+  const welcomeSeen = useWelcomeSeen();
   const [price, setPrice] = useState("");
   const [lockedChoice, setLockedChoice] = useState<Choice | null>(null);
   const [copied, setCopied] = useState(false);
-  const [name, setNameState] = useState("");
-  const [streak, setStreak] = useState<PausedStreak>(() => getPausedStreak());
-  const [personalization, setPersonalizationState] = useState<Personalization>(DEFAULT_PERSONALIZATION);
   const [activeDecision, setActiveDecision] = useState<{
     choice: Choice;
     hours: number;
@@ -69,25 +70,15 @@ export default function Home() {
   } | null>(null);
   const [category, setCategory] = useState<PurchaseCategory | null>(null);
   const [customCategory, setCustomCategory] = useState("");
-  const [showWelcome, setShowWelcome] = useState(false);
   const [cardEntered, setCardEntered] = useState(false);
   const [stackVisible, setStackVisible] = useState(false);
   const [resultsVisible, setResultsVisible] = useState(false);
   const [resultsLeaving, setResultsLeaving] = useState(false);
   const [revealDone, setRevealDone] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
-  const held = useRef<{ price: number; result: RealCostResult } | null>(null);
+  const [collapseToken, setCollapseToken] = useState(0);
+  const [collapsedToken, setCollapsedToken] = useState(-1);
+  const [held, setHeld] = useState<{ price: number; result: RealCostResult } | null>(null);
   const sendButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    setUnitsState(getUnits());
-    setNameState(getName());
-    setStreak(getPausedStreak());
-    setPersonalizationState(getPersonalization() ?? DEFAULT_PERSONALIZATION);
-    if (getUnits() && !hasSeenWelcome()) {
-      setShowWelcome(true);
-    }
-  }, []);
 
   const priceNum = parseFloat(price);
   const hasPrice = priceNum > 0;
@@ -95,12 +86,17 @@ export default function Home() {
 
   useEffect(() => {
     if (hasPrice && liveResult) {
-      held.current = { price: priceNum, result: liveResult };
-      setResultsLeaving(false);
-      setResultsVisible(true);
+      const snapshot = { price: priceNum, result: liveResult };
       if (!cardEntered) {
         const reduced = motionReduced();
-        const openId = requestAnimationFrame(() => setCardEntered(true));
+        const openId = requestAnimationFrame(() => {
+          setHeld((prev) =>
+            prev && prev.price === snapshot.price && prev.result.hours === snapshot.result.hours ? prev : snapshot
+          );
+          setResultsLeaving(false);
+          setResultsVisible(true);
+          setCardEntered(true);
+        });
         const visibleTimer = window.setTimeout(() => {
           setStackVisible(true);
           if (reduced) setRevealDone(true);
@@ -111,34 +107,48 @@ export default function Home() {
           window.clearTimeout(visibleTimer);
         };
       }
-      if (!stackVisible) setStackVisible(true);
-      return;
+      const followId = requestAnimationFrame(() => {
+        setHeld((prev) =>
+          prev && prev.price === snapshot.price && prev.result.hours === snapshot.result.hours ? prev : snapshot
+        );
+        setResultsLeaving(false);
+        setResultsVisible(true);
+        if (!stackVisible) setStackVisible(true);
+      });
+      return () => cancelAnimationFrame(followId);
     }
 
     if (!hasPrice && resultsVisible) {
       const reduced = motionReduced();
-      setResultsLeaving(true);
-      setCardEntered(false);
-      setStackVisible(false);
-      setRevealDone(false);
-      setCollapsed(false);
+      const leaveId = requestAnimationFrame(() => {
+        setResultsLeaving(true);
+        setCardEntered(false);
+        setStackVisible(false);
+        setRevealDone(false);
+      });
       const timer = window.setTimeout(() => {
         setResultsVisible(false);
         setResultsLeaving(false);
-        held.current = null;
+        setHeld(null);
       }, reduced ? 0 : CLEAR_FADE_MS);
-      return () => window.clearTimeout(timer);
+      return () => {
+        cancelAnimationFrame(leaveId);
+        window.clearTimeout(timer);
+      };
     }
   }, [hasPrice, liveResult, priceNum, cardEntered, stackVisible, resultsVisible]);
 
+  const collapsed = lockedChoice !== null && collapseToken === collapsedToken;
+
   useEffect(() => {
-    if (lockedChoice === null) {
-      setCollapsed(false);
-      return;
-    }
-    const timer = window.setTimeout(() => setCollapsed(true), motionReduced() ? 0 : COLLAPSE_FADE_MS);
+    if (lockedChoice === null) return;
+    const token = collapseToken;
+    const timer = window.setTimeout(
+      () => setCollapsedToken(token),
+      motionReduced() ? 0 : COLLAPSE_FADE_MS
+    );
     return () => window.clearTimeout(timer);
-  }, [lockedChoice]);
+  }, [lockedChoice, collapseToken]);
 
   const beginNewPriceSession = () => {
     setLockedChoice(null);
@@ -158,19 +168,16 @@ export default function Home() {
         <UnitsSetup
           onDone={(u) => {
             setUnits(u);
-            setUnitsState(u);
-            setNameState(getName());
-            setPersonalizationState(getPersonalization() ?? DEFAULT_PERSONALIZATION);
             window.dispatchEvent(new Event("realcost:units-updated"));
-            setShowWelcome(true);
           }}
         />
       </main>
     );
   }
 
-  const displayPrice = hasPrice ? priceNum : held.current?.price ?? 0;
-  const displayResult = hasPrice && liveResult ? liveResult : held.current?.result ?? null;
+  const displayPrice = hasPrice ? priceNum : held?.price ?? 0;
+  const displayResult = hasPrice && liveResult ? liveResult : held?.result ?? null;
+  const showWelcome = Boolean(units) && !welcomeSeen;
   const slotOpen = cardEntered && !resultsLeaving && Boolean(displayResult);
 
   const categoryLabel =
@@ -180,19 +187,19 @@ export default function Home() {
   const decisionCommitted = lockedChoice !== null;
   const dinnerLabel = units.dinnerLabel?.trim() || "dinner";
 
-  const handleChoice = (c: Choice) => {
+  const handleChoice = (c: Choice, timestamp: number) => {
     if (!liveResult || !hasPrice || decisionCommitted) return;
     addLogEntry({
       price: priceNum,
       hours: liveResult.hours,
       choice: c,
-      timestamp: Date.now(),
+      timestamp,
       category: category ?? undefined,
       categoryLabel: categoryLabel,
     });
     setLockedChoice(c);
     setRevealDone(true);
-    setStreak(getPausedStreak());
+    setCollapseToken((token) => token + 1);
     setActiveDecision({ choice: c, hours: liveResult.hours, price: priceNum });
     triggerHaptic(10);
     if (c === "skipped" && isMeaningfulHoursKept(liveResult.hours)) {
@@ -204,7 +211,7 @@ export default function Home() {
     );
   };
 
-  const handleShare = async (asChallenge = false) => {
+  const handleShare = async (asChallenge = false, timestamp = Date.now()) => {
     if (!liveResult || !hasPrice) return;
     const shareId = newShareId();
     track("share_started", { challenge: asChallenge });
@@ -215,7 +222,7 @@ export default function Home() {
       hours: liveResult.hours,
       role: "sent",
       shareId,
-      timestamp: Date.now(),
+      timestamp,
     });
 
     const text = shareText(formatMoney(priceNum), { challenge: asChallenge });
@@ -242,7 +249,6 @@ export default function Home() {
 
   const dismissWelcome = () => {
     markWelcomeSeen();
-    setShowWelcome(false);
   };
 
   const onPriceChange = (next: string) => {
@@ -314,7 +320,7 @@ export default function Home() {
                             disabled={decisionCommitted || resultsLeaving}
                             aria-pressed={isActive}
                             aria-disabled={decisionCommitted}
-                            onClick={() => handleChoice(c)}
+                            onClick={() => handleChoice(c, Date.now())}
                             className={`choice-chip choice-chip-${c} pressable${isActive ? " choice-chip-active" : ""}${
                               isLockedOut ? " choice-chip-locked" : ""
                             }${emphasizeSkipped ? " choice-chip-emphasize" : ""}`}

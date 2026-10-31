@@ -49,7 +49,9 @@ export default function DecisionSheet({
   const timeoutRef = useRef<number | null>(null);
   const [closing, setClosing] = useState(false);
 
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   const finish = () => {
     if (finishedRef.current) return;
@@ -75,7 +77,10 @@ export default function DecisionSheet({
     setClosing(true);
     timeoutRef.current = window.setTimeout(finish, DECISION_EXIT_MS);
   };
-  requestCloseRef.current = requestClose;
+
+  useEffect(() => {
+    requestCloseRef.current = requestClose;
+  });
 
   useEffect(() => {
     triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;

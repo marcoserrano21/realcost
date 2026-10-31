@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState, Fragment } from "react";
+import { useMemo, useState, Fragment } from "react";
 import Link from "next/link";
 import { formatHours, formatMoney } from "@/lib/calc";
-import type { Units } from "@/lib/calc";
 import {
   deleteComparisonEntry,
-  getComparisonLog,
-  getPersonalization,
-  getUnits,
+  notifyClientStore,
   updateComparisonEntry,
-  DEFAULT_PERSONALIZATION,
 } from "@/lib/storage";
 import type { ComparisonEntry } from "@/lib/storage";
+import {
+  EMPTY_COMPARISONS,
+  useComparisonLog,
+  usePersonalization,
+  useShowHonesty,
+  useUnits,
+} from "@/lib/useLocalData";
 import { getFeedEmptyCopy } from "@/lib/copy";
 import { encodeComparison, shareText } from "@/lib/sharing";
 import { shareLink } from "@/lib/nativeShare";
@@ -182,34 +185,29 @@ function SharedCard({
 }
 
 export default function FeedPage() {
-  const [units, setUnits] = useState<Units | null | undefined>(undefined);
+  const units = useUnits();
+  const tone = usePersonalization().tone;
+  const log = useComparisonLog() ?? EMPTY_COMPARISONS
+  const honesty = useShowHonesty(HONESTY_KEY);
+  const showHonesty = honesty === true;
   const [copied, setCopied] = useState(false);
-  const [tone, setTone] = useState(DEFAULT_PERSONALIZATION.tone);
-  const [log, setLog] = useState<ComparisonEntry[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNote, setEditNote] = useState("");
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [showHonesty, setShowHonesty] = useState(false);
-  const [page, setPage] = useState(0);
-
-  const refresh = () => setLog(getComparisonLog());
-
-  useEffect(() => {
-    setUnits(getUnits());
-    setTone((getPersonalization() ?? DEFAULT_PERSONALIZATION).tone);
-    refresh();
-    if (typeof window !== "undefined") {
-      setShowHonesty(window.localStorage.getItem(HONESTY_KEY) !== "1");
-    }
-  }, []);
-
-  useEffect(() => {
-    setPage(0);
-  }, [log.length]);
+  const pageKey = String(log.length);
+  const [paging, setPaging] = useState({ key: pageKey, page: 0 });
+  const page = paging.key === pageKey ? paging.page : 0;
+  const setPage = (update: number | ((current: number) => number)) => {
+    setPaging((prev) => {
+      const current = prev.key === pageKey ? prev.page : 0;
+      const next = typeof update === "function" ? update(current) : update;
+      return { key: pageKey, page: next };
+    });
+  };
 
   const dismissHonesty = () => {
     window.localStorage.setItem(HONESTY_KEY, "1");
-    setShowHonesty(false);
+    notifyClientStore();
   };
 
   const sorted = useMemo(() => [...log].sort((a, b) => b.timestamp - a.timestamp), [log]);
@@ -285,7 +283,6 @@ export default function FeedPage() {
     });
     track("comparison_updated", { role: entry.role });
     setEditingId(null);
-    refresh();
   };
 
   const confirmDelete = () => {
@@ -293,7 +290,6 @@ export default function FeedPage() {
     deleteComparisonEntry(pendingDeleteId);
     setPendingDeleteId(null);
     setEditingId(null);
-    refresh();
   };
 
   const handleReshare = async (entry: ComparisonEntry) => {
