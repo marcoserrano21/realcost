@@ -310,7 +310,7 @@ export default function FeedPage() {
     });
     if (result === "copied") {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 1600);
     }
   };
 
@@ -358,7 +358,9 @@ export default function FeedPage() {
     <main className="screen-shell">
       <PageEnter className="w-full max-w-sm flex flex-col gap-5 items-center">
         <ScreenHeader title="Shared" kicker="Prices you sent. Replies that land back here.">
-          {copied ? <p className="text-xs text-[var(--success)]">Link copied</p> : null}
+          <p className={`header-copied text-xs text-[var(--success)]${copied ? " is-on" : ""}`} aria-hidden={copied ? undefined : true}>
+            Link copied
+          </p>
         </ScreenHeader>
 
         {showHonesty ? (

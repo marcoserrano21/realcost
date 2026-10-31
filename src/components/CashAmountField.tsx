@@ -4,6 +4,8 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  useState,
+  type AnimationEvent,
   type ChangeEvent,
   type MouseEvent,
   type PointerEvent,
@@ -65,6 +67,26 @@ export default function CashAmountField({
   });
 
   const suppressClickRef = useRef(false);
+  const atCapRef = useRef(false);
+  const [atMax, setAtMax] = useState(false);
+  const [maxAnnouncement, setMaxAnnouncement] = useState("");
+
+  const reducedMotion = () =>
+    typeof document !== "undefined" && document.documentElement.getAttribute("data-reduce-motion") === "true";
+
+  const noteCapHit = () => {
+    if (allowDecimal || atCapRef.current) return;
+    atCapRef.current = true;
+    setMaxAnnouncement("Max price");
+    triggerHaptic(12);
+    if (!reducedMotion()) setAtMax(true);
+  };
+
+  const releaseCap = () => {
+    if (!atCapRef.current) return;
+    atCapRef.current = false;
+    setMaxAnnouncement("");
+  };
 
   const displayValue = formatGroupedInput(value, allowDecimal);
   const growChars = Math.max(1, (displayValue || "0").length);
@@ -82,6 +104,8 @@ export default function CashAmountField({
     const numeric = parseFloat(valueRef.current);
     const safe = Number.isFinite(numeric) ? numeric : 0;
     const next = Math.max(min, Math.round((safe + delta) * 100) / 100);
+    if (!allowDecimal && next > MAX_PRICE) noteCapHit();
+    else if (!allowDecimal) releaseCap();
     const capped = Math.min(MAX_PRICE, next);
     const nextStr = capped === 0 ? "" : String(Math.round(capped));
     const changed = nextStr !== valueRef.current;
@@ -178,6 +202,13 @@ export default function CashAmountField({
     const caret = el.selectionStart ?? el.value.length;
     caretDigitsRef.current = el.value.slice(0, caret).replace(/\D/g, "").length;
     const next = allowDecimal ? sanitizeDecimalInput(el.value) : sanitizeIntegerInput(el.value);
+    if (!allowDecimal) {
+      const rawDigits = el.value.replace(/\D/g, "").replace(/^0+/, "");
+      const droppedByCap =
+        rawDigits !== next && (rawDigits.length > next.length || Number(rawDigits) > Number(next || 0));
+      if (droppedByCap) noteCapHit();
+      else releaseCap();
+    }
     onChange(next);
   };
 
@@ -205,8 +236,18 @@ export default function CashAmountField({
         </svg>
       </button>
 
-      <div className="cash-amount-field">
+      <div
+        className={`cash-amount-field${atMax ? " is-at-max" : ""}`}
+        onAnimationEnd={(event: AnimationEvent<HTMLDivElement>) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.animationName !== "cash-max-shake") return;
+          setAtMax(false);
+        }}
+      >
         {prefix ? <span className="cash-amount-prefix" aria-hidden="true">{prefix}</span> : null}
+        <span className="sr-only" aria-live="polite">
+          {maxAnnouncement}
+        </span>
         <input
           ref={inputRef}
           autoFocus={autoFocus}

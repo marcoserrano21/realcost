@@ -27,6 +27,7 @@ import { triggerHaptic } from "@/lib/haptics";
 import HoursOdometer from "@/components/HoursOdometer";
 import LifeSpanGloss from "@/components/LifeSpanGloss";
 import PageEnter from "@/components/PageEnter";
+import CopyConfirm from "@/components/CopyConfirm";
 
 export default function CompareClient() {
   const router = useRouter();
@@ -121,7 +122,7 @@ export default function CompareClient() {
     setReacted(true);
     setCopied(true);
     triggerHaptic([10, 40, 14]);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 1600);
   };
 
   const handleShareMine = async (asChallenge = false) => {
@@ -148,7 +149,7 @@ export default function CompareClient() {
     setCopied(true);
     track("recipient_shared", { method: "clipboard" });
     triggerHaptic([10, 40, 14]);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 1600);
   };
 
   if (!decoded) {
@@ -166,7 +167,9 @@ export default function CompareClient() {
       <main className="screen-shell screen-shell-center">
         <PageEnter className="w-full max-w-sm flex flex-col items-center gap-4 text-center">
           <h1 className="brand-wordmark text-xl">Reaction received</h1>
-          <p className="text-[var(--muted)] text-sm">{reactionBanner ?? "Updating your Shared list…"}</p>
+          <p className={`text-[var(--muted)] text-sm${reactionBanner ? " reaction-banner" : ""}`}>
+            {reactionBanner ?? "Updating your Shared list…"}
+          </p>
           <Link href="/feed" className="primary-action pressable w-full">
             Open Shared
           </Link>
@@ -230,17 +233,23 @@ export default function CompareClient() {
 
               {shareId ? (
                 <button type="button" onClick={() => void handleReact()} className="primary-action pressable w-full">
-                  {reacted ? (copied ? "Copied" : "Sent") : "Tell them I checked"}
+                  <CopyConfirm
+                    label={reacted ? (copied ? "Copied" : "Sent") : "Tell them I checked"}
+                    labels={["Tell them I checked", "Copied", "Sent"]}
+                  />
                 </button>
               ) : (
                 <button type="button" onClick={() => void handleShareMine(false)} className="primary-action pressable w-full">
-                  {copied ? "Link copied" : "Send this back"}
+                  <CopyConfirm label={copied ? "Link copied" : "Send this back"} labels={["Send this back", "Link copied"]} />
                 </button>
               )}
 
               {shareId ? (
                 <button type="button" onClick={() => void handleShareMine(true)} className="link-action">
-                  {copied && !reacted ? "Link copied" : "Or share a new challenge"}
+                  <CopyConfirm
+                    label={copied && !reacted ? "Link copied" : "Or share a new challenge"}
+                    labels={["Or share a new challenge", "Link copied"]}
+                  />
                 </button>
               ) : null}
 
