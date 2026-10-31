@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { formatDinners, formatMoney, formatShifts } from "@/lib/calc";
 import type { RealCostResult } from "@/lib/calc";
 import HoursOdometer from "@/components/HoursOdometer";
@@ -12,26 +11,17 @@ export default function ResultCard({
   label,
   categoryLabel,
   dinnerLabel,
-  animateEnter = false,
 }: {
   price: number;
   result: RealCostResult;
   label?: string;
   categoryLabel?: string;
   dinnerLabel?: string;
-  animateEnter?: boolean;
 }) {
   const dinnerName = dinnerLabel ?? "dinner";
-  const [entered, setEntered] = useState(false);
-
-  useEffect(() => {
-    if (!animateEnter || entered) return;
-    const id = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(id);
-  }, [animateEnter, entered]);
 
   return (
-    <div className={`result-card${entered ? " result-card-enter" : ""}`}>
+    <div className="result-card">
       <span className="text-[var(--subtle)] text-sm tracking-wide result-price-soft">{formatMoney(price)}</span>
       {categoryLabel ? (
         <span className="text-[var(--champagne)] text-xs font-semibold tracking-wide uppercase">
