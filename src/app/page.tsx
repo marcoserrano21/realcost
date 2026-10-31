@@ -248,7 +248,6 @@ export default function Home() {
   const onPriceChange = (next: string) => {
     const previous = parseFloat(price);
     setPrice(next);
-    if (stackVisible) setRevealDone(true);
     beginNewPriceSession();
     const parsed = parseFloat(next);
     if (parsed > 0 && !(previous > 0)) track("calculation_created");
