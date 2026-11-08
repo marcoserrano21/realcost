@@ -39,9 +39,9 @@ import { PURCHASE_CATEGORY_OPTIONS } from "@/lib/personalizationOptions";
 import { markA2HSPeak } from "@/lib/storage";
 import { isMeaningfulHoursKept } from "@/lib/a2hsGate";
 
-const CLEAR_FADE_MS = 180;
-const STACK_VISIBLE_DELAY_MS = 60;
-const COLLAPSE_FADE_MS = 160;
+const CLEAR_FADE_MS = 720;
+const STACK_VISIBLE_DELAY_MS = 280;
+const COLLAPSE_FADE_MS = 560;
 
 function motionReduced(): boolean {
   return (
