@@ -90,7 +90,7 @@ export default function UnitsSetup({
       </div>
 
       <div className="progress-track" aria-hidden="true">
-        <span style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }} />
+        <span style={{ ["--fill" as string]: (step + 1) / TOTAL_STEPS }} />
       </div>
 
       <div className="onboarding-panel">

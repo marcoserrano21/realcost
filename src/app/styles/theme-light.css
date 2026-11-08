@@ -113,8 +113,8 @@ html.light .tab-bar {
   box-shadow:
     0 10px 32px rgb(30 41 59 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 80%);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
 }
 
 html.light .tab-item:hover {

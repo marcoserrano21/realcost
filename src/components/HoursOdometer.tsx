@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { formatHours, MAX_HOURS_FOR_ODOMETER } from "@/lib/calc";
 import { NumberReels } from "@/components/DigitReels";
 
@@ -20,18 +21,29 @@ export default function HoursOdometer({
   const safeHours = Number.isFinite(hours) && hours > 0 ? hours : 0;
   const label = formatHours(safeHours);
   const rollMs = Math.min(Math.max(durationMs, 320), 640);
+  const [announced, setAnnounced] = useState(label);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAnnounced(label), 500);
+    return () => window.clearTimeout(timer);
+  }, [label]);
+
+  const live = (
+    <span className="sr-only" aria-live="polite" aria-atomic="true">
+      {announced}
+    </span>
+  );
 
   if (safeHours >= MAX_HOURS_FOR_ODOMETER) {
     return (
       <span
         className={`hours-odometer hours-odometer-compact${className ? ` ${className}` : ""}`}
-        aria-live="polite"
-        aria-atomic="true"
         aria-label={label}
       >
         <span className="hours-odometer-face" aria-hidden="true">
           {label}
         </span>
+        {live}
       </span>
     );
   }
@@ -43,10 +55,9 @@ export default function HoursOdometer({
   return (
     <span
       className={`hours-odometer${className ? ` ${className}` : ""}`}
-      aria-live="polite"
-      aria-atomic="true"
       aria-label={label}
     >
+      {live}
       <span className="hours-odometer-face" aria-hidden="true">
         {h === 0 ? (
           <>
