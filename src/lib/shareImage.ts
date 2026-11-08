@@ -150,8 +150,12 @@ export function paintSharePoster(input: ShareImageInput): HTMLCanvasElement {
   }
 
   ctx.fillStyle = palette.hours;
-  ctx.font = "650 120px Outfit, system-ui, sans-serif";
-  ctx.fillText(content.priceLine ?? "", 96, y(520));
+  ctx.font = "650 160px Outfit, system-ui, sans-serif";
+  ctx.fillText(content.hoursLine ?? "", 96, y(520));
+
+  ctx.fillStyle = palette.meta;
+  ctx.font = "500 40px Outfit, system-ui, sans-serif";
+  ctx.fillText(content.caption ?? "", 96, y(590));
 
   ctx.fillStyle = palette.rule;
   roundRect(ctx, 96, y(680), 72, 6, 3);

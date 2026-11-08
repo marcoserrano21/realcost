@@ -67,7 +67,7 @@ Mark items `[x]` when verified. Note device/browser for share tests.
 ## Journey C — Share (Sender)
 
 - [ ] Share CTA visible from result state
-- [ ] Standard share card shows the price and “What does it cost you?” (no hours)
+- [ ] Post and Story show the hours and “What does it cost you?” (no price). The link still carries only the price.
 - [ ] Story 9:16 and poster 4:5 export correctly
 - [ ] Hours-kept card shows hours only (no skipped dollars)
 - [ ] Native share sheet opens on supported mobile browsers

@@ -340,7 +340,7 @@ export default function Home() {
 
                 <div className="home-reveal-item" data-collapse="secondary" style={revealStyle(3)}>
                   <div className="share-motion w-full">
-                    <ShareCard price={displayPrice} />
+                    <ShareCard hours={displayResult.hours} />
                   </div>
                 </div>
 

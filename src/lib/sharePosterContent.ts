@@ -1,7 +1,8 @@
 /**
  * Strings painted on a share poster or rendered in ShareCard.
  * Import-free so tests can prove a poster never carries price and hours together.
- * A share shows the price or the hours, never both, and never a life-span gloss.
+ * A poster shows the hours, never the price. A link shows the price, never the hours.
+ * The two are never painted on the same artifact, and a poster never includes a life-span gloss.
  */
 
 export type SharePosterFormatters = {
@@ -48,15 +49,16 @@ export function sharePosterContent(
     };
   }
 
-  const priceLine = formatters.formatMoney(input.price ?? 0);
+  const hoursLine = formatters.formatHours(input.hours ?? 0);
+  const caption = "of your work";
   const tagline = ["Same dollars.", "Different life."];
   return {
     brand,
-    priceLine,
-    hoursLine: null,
-    caption: null,
+    priceLine: null,
+    hoursLine,
+    caption,
     tagline,
     cta,
-    lines: [brand, priceLine, ...tagline, cta],
+    lines: [brand, hoursLine, caption, ...tagline, cta],
   };
 }
