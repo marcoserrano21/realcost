@@ -1,4 +1,4 @@
-export type ShareCardFormat = "poster45" | "story916" | "dual";
+export type ShareCardFormat = "poster45" | "story916";
 
 export function canvasSizeForFormat(format: ShareCardFormat): { width: number; height: number } {
   if (format === "story916") return { width: 1080, height: 1920 };

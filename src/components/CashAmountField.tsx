@@ -45,7 +45,9 @@ export default function CashAmountField({
   allowDecimal?: boolean;
 }) {
   const valueRef = useRef(value);
-  valueRef.current = value;
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const caretDigitsRef = useRef<number | null>(null);
@@ -193,11 +195,11 @@ export default function CashAmountField({
         className="cash-stepper pressable"
         aria-label={`Decrease ${ariaLabel}`}
         disabled={safe <= min}
-        onPointerDown={onStepperPointerDown(-1)}
+        onPointerDown={(event) => onStepperPointerDown(-1)(event)}
         onPointerUp={onStepperPointerUp}
         onPointerCancel={onStepperPointerUp}
         onLostPointerCapture={stopHold}
-        onClick={onStepperClick(-1)}
+        onClick={(event) => onStepperClick(-1)(event)}
         onContextMenu={(e) => e.preventDefault()}
       >
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -232,11 +234,11 @@ export default function CashAmountField({
         className="cash-stepper pressable"
         aria-label={`Increase ${ariaLabel}`}
         disabled={safe >= MAX_PRICE}
-        onPointerDown={onStepperPointerDown(1)}
+        onPointerDown={(event) => onStepperPointerDown(1)(event)}
         onPointerUp={onStepperPointerUp}
         onPointerCancel={onStepperPointerUp}
         onLostPointerCapture={stopHold}
-        onClick={onStepperClick(1)}
+        onClick={(event) => onStepperClick(1)(event)}
         onContextMenu={(e) => e.preventDefault()}
       >
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

@@ -15,15 +15,14 @@ export default function OnboardingCostPreview() {
   const [hours, setHours] = useState(HOURS_START);
 
   useEffect(() => {
-    if (prefersReducedMotion()) {
-      setMoney(MONEY_END);
-      setHours(HOURS_END);
-      return;
-    }
-
     let moneyTimer = 0;
     let hoursTimer = 0;
     const frame = window.requestAnimationFrame(() => {
+      if (prefersReducedMotion()) {
+        setMoney(MONEY_END);
+        setHours(HOURS_END);
+        return;
+      }
       moneyTimer = window.setTimeout(() => setMoney(MONEY_END), 60);
       hoursTimer = window.setTimeout(() => setHours(HOURS_END), 280);
     });

@@ -37,12 +37,10 @@ function supportedMime(): string | null {
 
 /** True when video export is available for this card (else callers should use PNG). */
 export function shouldExportShareVideo(input: ShareVideoInput = { price: 0, hours: 0 }): boolean {
-  const challenge = (input.compareHours ?? 0) > 0;
   return canExportShareVideo({
     reduceMotion: isReducedMotionActive(),
     mimeType: supportedMime(),
     variant: input.variant,
-    challenge,
   });
 }
 

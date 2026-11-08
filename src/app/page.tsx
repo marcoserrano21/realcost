@@ -1,29 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { computeRealCost, formatHours, formatMoney } from "@/lib/calc";
-import type { Units, RealCostResult } from "@/lib/calc";
+import { useEffect, useState, type CSSProperties } from "react";
+import { computeRealCost, formatMoney } from "@/lib/calc";
+import type { RealCostResult } from "@/lib/calc";
 import {
   addComparisonEntry,
   addLogEntry,
-  getName,
-  getPersonalization,
-  getUnits,
   getWeekSummary,
-  hasSeenWelcome,
   markWelcomeSeen,
   setUnits,
-  DEFAULT_PERSONALIZATION,
 } from "@/lib/storage";
-import type { Choice, Personalization, PurchaseCategory } from "@/lib/storage";
+import type { Choice, PurchaseCategory } from "@/lib/storage";
 import { getDecisionCopy } from "@/lib/copy";
 import { encodeComparison, newShareId, shareText } from "@/lib/sharing";
-import { getSharePrivacy } from "@/lib/sharePrivacy";
 import { shareLink } from "@/lib/nativeShare";
 import { track } from "@/lib/analytics";
 import { triggerHaptic } from "@/lib/haptics";
-import { getPausedStreak } from "@/lib/streaks";
-import type { PausedStreak } from "@/lib/streaks";
+import {
+  useDisplayName,
+  usePausedStreak,
+  usePersonalization,
+  useUnits,
+  useWelcomeSeen,
+} from "@/lib/useLocalData";
 import UnitsSetup from "@/components/UnitsSetup";
 import ResultCard from "@/components/ResultCard";
 import DecisionSheet from "@/components/DecisionSheet";
@@ -47,13 +46,14 @@ function revealStyle(index: number): CSSProperties {
 }
 
 export default function Home() {
-  const [units, setUnitsState] = useState<Units | null | undefined>(undefined);
+  const units = useUnits();
+  const name = useDisplayName();
+  const streak = usePausedStreak();
+  const personalization = usePersonalization();
+  const welcomeSeen = useWelcomeSeen();
   const [price, setPrice] = useState("");
   const [lockedChoice, setLockedChoice] = useState<Choice | null>(null);
   const [copied, setCopied] = useState(false);
-  const [name, setNameState] = useState("");
-  const [streak, setStreak] = useState<PausedStreak>(() => getPausedStreak());
-  const [personalization, setPersonalizationState] = useState<Personalization>(DEFAULT_PERSONALIZATION);
   const [activeDecision, setActiveDecision] = useState<{
     choice: Choice;
     hours: number;
@@ -61,22 +61,11 @@ export default function Home() {
   } | null>(null);
   const [category, setCategory] = useState<PurchaseCategory | null>(null);
   const [customCategory, setCustomCategory] = useState("");
-  const [showWelcome, setShowWelcome] = useState(false);
   const [cardEntered, setCardEntered] = useState(false);
   const [stackVisible, setStackVisible] = useState(false);
   const [resultsVisible, setResultsVisible] = useState(false);
   const [resultsLeaving, setResultsLeaving] = useState(false);
-  const held = useRef<{ price: number; result: RealCostResult } | null>(null);
-
-  useEffect(() => {
-    setUnitsState(getUnits());
-    setNameState(getName());
-    setStreak(getPausedStreak());
-    setPersonalizationState(getPersonalization() ?? DEFAULT_PERSONALIZATION);
-    if (getUnits() && !hasSeenWelcome()) {
-      setShowWelcome(true);
-    }
-  }, []);
+  const [held, setHeld] = useState<{ price: number; result: RealCostResult } | null>(null);
 
   const priceNum = parseFloat(price);
   const hasPrice = priceNum > 0;
@@ -84,14 +73,19 @@ export default function Home() {
 
   useEffect(() => {
     if (hasPrice && liveResult) {
-      held.current = { price: priceNum, result: liveResult };
-      setResultsLeaving(false);
-      setResultsVisible(true);
+      const snapshot = { price: priceNum, result: liveResult };
       if (!cardEntered) {
         const reduced =
           typeof document !== "undefined" &&
           document.documentElement.getAttribute("data-reduce-motion") === "true";
-        const openId = requestAnimationFrame(() => setCardEntered(true));
+        const openId = requestAnimationFrame(() => {
+          setHeld((prev) =>
+            prev && prev.price === snapshot.price && prev.result.hours === snapshot.result.hours ? prev : snapshot
+          );
+          setResultsLeaving(false);
+          setResultsVisible(true);
+          setCardEntered(true);
+        });
         const visibleTimer = window.setTimeout(() => {
           setStackVisible(true);
           triggerHaptic([8, 30, 12]);
@@ -101,20 +95,32 @@ export default function Home() {
           window.clearTimeout(visibleTimer);
         };
       }
-      if (!stackVisible) setStackVisible(true);
-      return;
+      const followId = requestAnimationFrame(() => {
+        setHeld((prev) =>
+          prev && prev.price === snapshot.price && prev.result.hours === snapshot.result.hours ? prev : snapshot
+        );
+        setResultsLeaving(false);
+        setResultsVisible(true);
+        if (!stackVisible) setStackVisible(true);
+      });
+      return () => cancelAnimationFrame(followId);
     }
 
     if (!hasPrice && resultsVisible) {
-      setResultsLeaving(true);
-      setCardEntered(false);
-      setStackVisible(false);
+      const leaveId = requestAnimationFrame(() => {
+        setResultsLeaving(true);
+        setCardEntered(false);
+        setStackVisible(false);
+      });
       const timer = window.setTimeout(() => {
         setResultsVisible(false);
         setResultsLeaving(false);
-        held.current = null;
+        setHeld(null);
       }, CLEAR_FADE_MS);
-      return () => window.clearTimeout(timer);
+      return () => {
+        cancelAnimationFrame(leaveId);
+        window.clearTimeout(timer);
+      };
     }
   }, [hasPrice, liveResult, priceNum, cardEntered, stackVisible, resultsVisible]);
 
@@ -136,19 +142,16 @@ export default function Home() {
         <UnitsSetup
           onDone={(u) => {
             setUnits(u);
-            setUnitsState(u);
-            setNameState(getName());
-            setPersonalizationState(getPersonalization() ?? DEFAULT_PERSONALIZATION);
             window.dispatchEvent(new Event("realcost:units-updated"));
-            setShowWelcome(true);
           }}
         />
       </main>
     );
   }
 
-  const displayPrice = hasPrice ? priceNum : held.current?.price ?? 0;
-  const displayResult = hasPrice && liveResult ? liveResult : held.current?.result ?? null;
+  const displayPrice = hasPrice ? priceNum : held?.price ?? 0;
+  const displayResult = hasPrice && liveResult ? liveResult : held?.result ?? null;
+  const showWelcome = Boolean(units) && !welcomeSeen;
   const slotOpen = cardEntered && !resultsLeaving && Boolean(displayResult);
 
   const categoryLabel =
@@ -158,18 +161,17 @@ export default function Home() {
   const decisionCommitted = lockedChoice !== null;
   const dinnerLabel = units.dinnerLabel?.trim() || "dinner";
 
-  const handleChoice = (c: Choice) => {
+  const handleChoice = (c: Choice, timestamp: number) => {
     if (!liveResult || !hasPrice || decisionCommitted) return;
     addLogEntry({
       price: priceNum,
       hours: liveResult.hours,
       choice: c,
-      timestamp: Date.now(),
+      timestamp,
       category: category ?? undefined,
       categoryLabel: categoryLabel,
     });
     setLockedChoice(c);
-    setStreak(getPausedStreak());
     setActiveDecision({ choice: c, hours: liveResult.hours, price: priceNum });
     triggerHaptic(10);
     if (c === "skipped" && isMeaningfulHoursKept(liveResult.hours)) {
@@ -183,14 +185,9 @@ export default function Home() {
 
   const handleShare = async (asChallenge = false) => {
     if (!liveResult || !hasPrice) return;
-    const privacy = asChallenge ? "exact" : getSharePrivacy();
     const shareId = newShareId();
-    track("share_started", { privacy, challenge: asChallenge });
-    const shareUrl = encodeComparison(
-      window.location.origin,
-      { price: priceNum, hours: liveResult.hours },
-      { privacy, shareId }
-    );
+    track("share_started", { challenge: asChallenge });
+    const shareUrl = encodeComparison(window.location.origin, { price: priceNum }, { shareId });
 
     addComparisonEntry({
       price: priceNum,
@@ -200,10 +197,7 @@ export default function Home() {
       timestamp: Date.now(),
     });
 
-    const text = shareText(formatMoney(priceNum), {
-      hoursLabel: formatHours(liveResult.hours),
-      privacy,
-    });
+    const text = shareText(formatMoney(priceNum), { challenge: asChallenge });
 
     const result = await shareLink({
       title: asChallenge ? "Same price. What does it cost you?" : "What does this actually cost you?",
@@ -211,14 +205,14 @@ export default function Home() {
       url: shareUrl,
     });
     if (result === "shared") {
-      track("share_completed", { method: "native", privacy, challenge: asChallenge });
+      track("share_completed", { method: "native", challenge: asChallenge });
       triggerHaptic([10, 40, 14]);
       markA2HSPeak("share");
       return;
     }
     if (result === "copied") {
       setCopied(true);
-      track("share_completed", { method: "clipboard", privacy, challenge: asChallenge });
+      track("share_completed", { method: "clipboard", challenge: asChallenge });
       triggerHaptic([10, 40, 14]);
       markA2HSPeak("share");
       setTimeout(() => setCopied(false), 2000);
@@ -227,7 +221,6 @@ export default function Home() {
 
   const dismissWelcome = () => {
     markWelcomeSeen();
-    setShowWelcome(false);
   };
 
   const onPriceChange = (next: string) => {
@@ -298,7 +291,7 @@ export default function Home() {
                             disabled={decisionCommitted || resultsLeaving}
                             aria-pressed={isActive}
                             aria-disabled={decisionCommitted}
-                            onClick={() => handleChoice(c)}
+                            onClick={() => handleChoice(c, Date.now())}
                             className={`choice-chip choice-chip-${c} pressable${isActive ? " choice-chip-active" : ""}${
                               isLockedOut ? " choice-chip-locked" : ""
                             }${emphasizeSkipped ? " choice-chip-emphasize" : ""}`}
@@ -318,7 +311,7 @@ export default function Home() {
 
                 <div className="home-reveal-item" data-collapse="secondary" style={revealStyle(3)}>
                   <div className="share-motion w-full">
-                    <ShareCard price={displayPrice} hours={displayResult.hours} label={name || undefined} />
+                    <ShareCard hours={displayResult.hours} />
                   </div>
                 </div>
 

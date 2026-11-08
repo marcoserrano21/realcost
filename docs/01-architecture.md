@@ -58,17 +58,17 @@ Agent note: this Next.js version differs from older training defaults — check 
 | **Calculation** | Pure price → hours / shifts / dinners; US median benchmark helper | `src/lib/calc.ts` |
 | **Formatting** | Duration, money, life-span gloss | `src/lib/calc.ts` (`formatHours`, `formatLifeSpan`) |
 | **Storage** | Units, log, comparisons, personalization, welcome, A2HS | `src/lib/storage.ts` |
-| **Sharing** | Encode/decode URL payloads; share copy | `src/lib/sharing.ts` |
-| **Share privacy** | Private vs Exact mode | `src/lib/sharePrivacy.ts` |
-| **Share formats** | Poster 4:5 / Story 9:16 / Dual canvas sizes | `src/lib/shareFormats.ts` |
-| **Share image** | Canvas PNG (standard, hoursKept, challenge) | `src/lib/shareImage.ts` |
-| **Share video** | Canvas MediaRecorder reel reveal (WebM / MP4 when supported) | `src/lib/shareVideo.ts`, `shareVideoCore.ts` |
+| **Sharing** | Encode/decode URL payloads; share copy. Price only | `src/lib/sharing.ts` |
+| **Share poster copy** | Hours only. Never the price, so a poster cannot recover a wage | `src/lib/sharePosterContent.ts` |
+| **Share formats** | Poster 4:5 / Story 9:16 | `src/lib/shareFormats.ts` |
+| **Share image** | Canvas PNG. Post, Story, and hours-kept are hours only | `src/lib/shareImage.ts` |
+| **Share video** | Recorder helpers. Export is off while posters have no hours reel | `src/lib/shareVideo.ts`, `shareVideoCore.ts` |
 | **Wage buckets** | Onboarding range midpoints → `hourlyWage` | `src/lib/wageBuckets.ts` |
 | **Native share** | `navigator.share` → clipboard; cancel ≠ success | `src/lib/nativeShare.ts` |
 | **Hours kept** | Skipped totals (week / all-time) | `src/lib/hoursKept.ts` |
 | **Streaks / week** | Mon–Sun paused hours + week streak | `src/lib/streaks.ts`, `src/lib/week.ts` |
 | **Category heat** | Kept / thinking / bought lenses | `src/lib/categoryHeat.ts` |
-| **Challenge** | Dual-card unlock when both sides have hours | `src/lib/challenge.ts` |
+| **Analytics props** | Per-event allowlist; drops numbers and wage matches | `src/lib/analyticsProps.ts` |
 | **Haptics** | Decision / reveal / share feedback | `src/lib/haptics.ts` |
 | **A2HS gate** | Peak-triggered install (share / skipped) | `src/lib/a2hsGate.ts` |
 | **Compare OG** | Challenge-framed link preview copy | `src/lib/compareOg.ts` |
@@ -102,7 +102,6 @@ formatLifeSpan(hours) // null under 24h; else "≈ N day(s)|week(s)|month(s)|yea
 | `realcost:name` | Optional display name (**local only** — never in URLs) |
 | `realcost:personalization` | Spending focus + tone |
 | `realcost:welcome_seen` | Welcome modal flag |
-| `realcost:share_privacy` | `private` (default) or `exact` |
 | `realcost:theme` | `system` / `light` / `dark` |
 | `realcost:motion` | `system` / `full` / `reduced` |
 | `realcost:analytics_queue` | Batched analytics events |
@@ -121,9 +120,9 @@ Custom events: `realcost:units-updated`, `realcost:preferences-updated`, `realco
 | Route | Purpose | Notes |
 |-------|---------|-------|
 | `/` | Home — calc → category → decide → share | Streak above header; haptics; TabBar with safe-area |
-| `/feed` | **Shared** tab — local comparison inbox | Waiting / Seen / Received; challenge dual unlock; route path legacy |
+| `/feed` | **Shared** tab — local comparison inbox | Waiting / Seen / Received; route path legacy |
 | `/history` | Decision history | Filters, recategorize, heat map metric menu |
-| `/settings` | Rate, units, look & feel, sharing mode, reset | Exact mode uses confirm dialog |
+| `/settings` | Rate, units, look & feel, reset | Sharing copy: links never include hours |
 | `/c` | Recipient / challenge / reaction flow | Instant median benchmark teaser; URL-driven; **no TabBar** |
 | `/legal/privacy`, `/legal/terms` | Legal | `LegalShell` |
 
@@ -132,14 +131,12 @@ Custom events: `realcost:units-updated`, `realcost:preferences-updated`, `realco
 | Param | When | Meaning |
 |-------|------|---------|
 | `p` | Always | Price |
-| `h` | **Exact** mode, or `reply=1` reaction | Hours |
 | `s` | When present | Opaque share id for reactions |
-| `reply` | Recipient react | `1` = hours reply for matching `s` |
+| `reply` | Recipient checked the price | `1` = reply for matching `s`. No hours |
 
-**Never encoded:** wage, display name (legacy `n=` is stripped on decode), email, or rate fields.
+**Never encoded:** wage, hours, display name (legacy `n=` and `h=` are ignored and stripped), email, or rate fields.
 
-**Private (default):** price (+ optional `s`) only — cannot reverse wage from the link.  
-**Exact (opt-in):** price + hours — user confirms in Settings because `p÷h` approximates rate.
+**Rule:** a link carries the price only. The recipient computes hours from their own wage. Price and hours together would recover wage (`wage = price / hours`).
 
 ---
 
@@ -149,9 +146,9 @@ Custom events: `realcost:units-updated`, `realcost:preferences-updated`, `realco
 
 Enforced in:
 
-- `sharing.ts` / `sharePrivacy.ts` — payload excludes wage; Private omits `h`
-- `analytics.ts` — strips keys matching `/wage|rate|email|name/i`
-- Share card / canvas PNG / video / OG — hours and price only (name local on card)
+- `sharing.ts` — payload is `p` (+ `s`, + `reply`). Never hours
+- `analyticsProps.ts` — per-event allowlist; drops numbers, numeric strings, and values equal to the current wage. Key deny-list still applies
+- Share card / canvas PNG / OG — price or hours, never both. Standard posters are price only. Hours-kept posters are hours only
 - `/c` US median teaser uses a **local display constant** (`US_MEDIAN_HOURLY_WAGE`) — never encoded in the URL
 
 ---
@@ -166,12 +163,12 @@ Enforced in:
 | Digit reels | `DigitReels.tsx`, `HoursOdometer.tsx` | Hours hero; reduced-motion snaps |
 | LifeSpanGloss | `LifeSpanGloss.tsx` | Secondary calendar caption ≥24h |
 | WeeklyStreak | `WeeklyStreak.tsx` | Paused hours + flame + hours-kept share |
-| ShareCard | `ShareCard.tsx`, `shareFormats.ts` | Poster / Story / Dual; hoursKept; PNG + video export |
+| ShareCard | `ShareCard.tsx`, `shareFormats.ts` | Poster / Story; hoursKept is hours only; PNG export |
 | DecisionSheet | `DecisionSheet.tsx` | Tone copy + choice accent borders |
 | CategoryHeatMap | `CategoryHeatMap.tsx` | All categories; kept / thinking / spent menu |
 | BounceLoader | `BounceLoader.tsx` | Boot / suspense wait |
 | CompactSelect | `CompactSelect.tsx` | Animated History Sort/Date |
-| ConfirmDialog | `ConfirmDialog.tsx` | Deletes, Exact confirm, resets |
+| ConfirmDialog | `ConfirmDialog.tsx` | Deletes and resets |
 | InstallPrompt | `InstallPrompt.tsx` | Peak-gated A2HS |
 | Viewport | `layout.tsx` | `viewportFit: "cover"` for iOS home indicator |
 | CSS entry | `globals.css` → `styles/*.css` | Split tokens, home, share, motion, reduce-motion |
@@ -191,15 +188,13 @@ User logs decision → addLogEntry()  (+ haptic)
        ↓
 Optional: Skipped → hours kept totals; A2HS peak
        ↓
-User shares → encodeComparison({ price, hours?, shareId, privacy })
+User shares → encodeComparison({ price, shareId })  // never hours
        ↓
-Recipient opens /c → decodeComparison() (legacy n= ignored)
+Recipient opens /c → decodeComparison() (legacy n= and h= ignored, then stripped)
        ↓
 Recipient enters wage locally → computeRealCost(same price, their units)
        ↓
-Optional React (reply=1 + h + s) → sender Shared shows Seen
-       ↓
-Both sides hours → dual challenge card unlocks
+Optional reply (reply=1 + s, no hours) → sender Shared shows Seen
        ↓
 Both sides → addComparisonEntry() in local logs
 ```
@@ -212,7 +207,7 @@ Both sides → addComparisonEntry() in local logs
 |---------------------|-------------|
 | Calc logic is trustworthy | `npm test` covers calc, sharing, formats, hours-kept, A2HS, challenge |
 | Build is deployable | `npm run build` passes on Vercel |
-| Privacy invariant holds | QA: Private has no `h`; Exact never includes wage; analytics strip works |
+| Privacy invariant holds | QA: links have no `h`; posters are price or hours, never both; analytics allowlist drops numbers |
 | Domains are swappable | Analytics sink replaceable without touching call sites |
 
 ---
@@ -224,7 +219,7 @@ Both sides → addComparisonEntry() in local logs
 | **localStorage quota** | Analytics queue capped; graceful catch on write failure |
 | **SSR vs client storage** | Storage reads guarded with `typeof window` |
 | **Share URL tampering** | Invalid params → graceful empty state on `/c` |
-| **Exact mode inference** | `p/h` ≈ wage — opt-in + confirm only |
+| **Price and hours together** | Any outbound surface that has both recovers wage. Links are price only; hours-kept cards are hours only |
 | **Future backend** | Sync can sit behind storage abstraction — not built |
 | **Hours Budget / Pro** | Documented in `14-business-monetization.md` — **not shipped in code** |
 

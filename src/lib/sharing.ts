@@ -7,19 +7,15 @@ function clampPrice(value: number): number {
 
 export type ComparisonPayload = {
   price: number;
-  /** Omitted in private share mode so wage cannot be reverse-engineered. */
-  hours?: number;
-  /** Opaque share id for reaction loop. Never encodes wage. */
+  /** Opaque share id for the reaction loop. Never encodes wage. */
   shareId?: string;
-  /** Recipient is sending hours back to the original sharer. */
+  /** Recipient is telling the sender they checked this price. */
   isReply?: boolean;
 };
 
 export type EncodeOptions = {
-  /** private (default): price only. exact: includes hours (can reveal wage). */
-  privacy?: "private" | "exact";
   shareId?: string;
-  /** When true, hours are included as a reaction reply (not a wage leak of the sender). */
+  /** Marks a reply link. Hours are never included. */
   isReply?: boolean;
 };
 
@@ -30,30 +26,29 @@ export function newShareId(): string {
   return Math.random().toString(36).slice(2, 12);
 }
 
-/** Build a comparison URL. Never encodes wage or display name. */
+/**
+ * Build a comparison URL.
+ * Links carry price only (`p`), plus `s` and `reply` when needed.
+ * Hours are never encoded: price and hours together recover wage.
+ */
 export function encodeComparison(
   origin: string,
-  payload: { price: number; hours: number },
+  payload: { price: number },
   options: EncodeOptions = {}
 ): string {
   const url = new URL("/c", origin);
   const price = clampPrice(payload.price);
   url.searchParams.set("p", String(price));
-  const privacy = options.privacy ?? "private";
-  const hours = Number.isFinite(payload.hours) ? payload.hours : 0;
   if (options.shareId) {
     url.searchParams.set("s", options.shareId);
   }
-  if (options.isReply && hours > 0 && hours < 1e9) {
+  if (options.isReply) {
     url.searchParams.set("reply", "1");
-    url.searchParams.set("h", hours.toFixed(2));
-  } else if (privacy === "exact" && hours > 0 && hours < 1e9) {
-    url.searchParams.set("h", hours.toFixed(2));
   }
   return url.toString();
 }
 
-/** Parse comparison query params. Price required; hours optional (private links). */
+/** Parse comparison query params. Price required. Legacy `h` and `n` are ignored. */
 export function decodeComparison(params: {
   get: (key: string) => string | null;
 }): ComparisonPayload | null {
@@ -62,29 +57,18 @@ export function decodeComparison(params: {
 
   const shareId = params.get("s")?.trim() || undefined;
   const isReply = params.get("reply") === "1";
-
-  const hoursRaw = params.get("h");
-  if (hoursRaw == null || hoursRaw === "") {
-    return { price, shareId, isReply: isReply || undefined };
-  }
-
-  const hours = parseFloat(hoursRaw);
-  if (!Number.isFinite(hours) || hours <= 0 || hours >= 1e9) {
-    return { price, shareId, isReply: isReply || undefined };
-  }
-  return { price, hours, shareId, isReply: isReply || undefined };
+  return { price, shareId, isReply: isReply || undefined };
 }
 
 export function shareText(
   priceLabel: string,
-  options?: { hoursLabel?: string; privacy?: "private" | "exact"; isReply?: boolean }
+  options?: { isReply?: boolean; challenge?: boolean }
 ): string {
-  if (options?.isReply && options.hoursLabel) {
-    return `I saw your ${priceLabel} — it costs me ${options.hoursLabel}. Same dollars. Different life.`;
+  if (options?.isReply) {
+    return `I checked your ${priceLabel}. Ran my own number. Your turn to guess mine.`;
   }
-  const privacy = options?.privacy ?? "private";
-  if (privacy === "exact" && options?.hoursLabel) {
-    return `This ${priceLabel} cost me ${options.hoursLabel} of my life. What does it cost you?`;
+  if (options?.challenge) {
+    return `Same ${priceLabel}. Bet it costs us different amounts of life. Check yours.`;
   }
   return `What does ${priceLabel} cost you in hours of your life?`;
 }

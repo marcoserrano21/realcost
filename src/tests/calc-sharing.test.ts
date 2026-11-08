@@ -35,49 +35,35 @@ test("benchmarkHoursForPrice uses US median constant only", () => {
   assert.equal(benchmarkHoursForPrice(22), 1);
 });
 
-test("private encode omits hours so wage cannot be reversed", () => {
-  const url = encodeComparison(
-    "https://realcost.app",
-    { price: 150, hours: 6.316 },
-    { privacy: "private" }
-  );
+test("encode writes price only so wage cannot be reversed", () => {
+  const url = encodeComparison("https://realcost.app", { price: 150 });
   const parsed = new URL(url);
   const decoded = decodeComparison(parsed.searchParams);
   assert.ok(decoded);
   assert.equal(decoded.price, 150);
-  assert.equal(decoded.hours, undefined);
+  assert.equal("hours" in decoded, false);
   assert.equal(parsed.searchParams.has("h"), false);
   assert.equal(parsed.searchParams.has("wage"), false);
   assert.equal(parsed.searchParams.has("n"), false);
+  assert.deepEqual([...parsed.searchParams.keys()], ["p"]);
 });
 
-test("exact encode includes hours", () => {
-  const url = encodeComparison(
-    "https://realcost.app",
-    { price: 150, hours: 6.316 },
-    { privacy: "exact" }
-  );
-  const parsed = new URL(url);
-  const decoded = decodeComparison(parsed.searchParams);
-  assert.ok(decoded);
-  assert.equal(decoded.price, 150);
-  assert.equal(decoded.hours, 6.32);
-});
-
-test("decodeComparison ignores legacy n= name param", () => {
+test("decodeComparison ignores legacy h and n params", () => {
   const params = new URLSearchParams("p=150&h=6.32&n=Maya");
   const decoded = decodeComparison(params);
   assert.ok(decoded);
   assert.equal(decoded.price, 150);
-  assert.equal(decoded.hours, 6.32);
+  assert.equal("hours" in decoded, false);
+  assert.equal(decoded.shareId, undefined);
+  assert.equal(decoded.isReply, undefined);
 });
 
-test("decodeComparison accepts price-only private links", () => {
+test("decodeComparison accepts price-only links", () => {
   const params = new URLSearchParams("p=150");
   const decoded = decodeComparison(params);
   assert.ok(decoded);
   assert.equal(decoded.price, 150);
-  assert.equal(decoded.hours, undefined);
+  assert.equal("hours" in decoded, false);
 });
 
 test("decodeComparison rejects invalid payloads", () => {
@@ -85,13 +71,20 @@ test("decodeComparison rejects invalid payloads", () => {
   assert.equal(decodeComparison(params), null);
 });
 
-test("shareText private asks without revealing hours", () => {
-  assert.match(shareText("$150", { privacy: "private" }), /What does \$150 cost you/);
-  assert.doesNotMatch(shareText("$150", { privacy: "private", hoursLabel: "6h" }), /6h/);
+test("shareText default asks without revealing hours", () => {
+  const text = shareText("$150");
+  assert.match(text, /What does \$150 cost you/);
+  assert.doesNotMatch(text, /\d+h/);
 });
 
-test("shareText exact includes hours", () => {
-  assert.match(shareText("$150", { privacy: "exact", hoursLabel: "6h 19m" }), /6h 19m/);
+test("shareText challenge and reply invite without hours", () => {
+  const challenge = shareText("$150", { challenge: true });
+  const reply = shareText("$150", { isReply: true });
+  assert.match(challenge, /Same \$150/);
+  assert.match(challenge, /Check yours/);
+  assert.match(reply, /I checked your \$150/);
+  assert.doesNotMatch(challenge, /\d+h/);
+  assert.doesNotMatch(reply, /\d+h/);
 });
 
 import {
@@ -178,24 +171,29 @@ test("computeRealCost clamps absurd prices", () => {
 });
 
 test("encodeComparison can attach opaque share id", () => {
-  const url = encodeComparison(
-    "https://realcost.app",
-    { price: 80, hours: 4 },
-    { privacy: "private", shareId: "abc123xyz0" }
-  );
+  const url = encodeComparison("https://realcost.app", { price: 80 }, { shareId: "abc123xyz0" });
   const parsed = new URL(url);
   assert.equal(parsed.searchParams.get("s"), "abc123xyz0");
   assert.equal(parsed.searchParams.has("h"), false);
+  assert.equal(parsed.searchParams.has("reply"), false);
 });
 
-test("decodeComparison reads reply reactions", () => {
+test("decodeComparison reads reply reactions without hours", () => {
   const params = new URLSearchParams("p=80&s=abc123xyz0&reply=1&h=3.5");
   const decoded = decodeComparison(params);
   assert.ok(decoded);
   assert.equal(decoded.price, 80);
   assert.equal(decoded.shareId, "abc123xyz0");
   assert.equal(decoded.isReply, true);
-  assert.equal(decoded.hours, 3.5);
+  assert.equal("hours" in decoded, false);
+});
+
+test("encodeComparison reply flag never writes hours", () => {
+  const url = encodeComparison("https://realcost.app", { price: 80 }, { shareId: "abc123xyz0", isReply: true });
+  const parsed = new URL(url);
+  assert.equal(parsed.searchParams.get("reply"), "1");
+  assert.equal(parsed.searchParams.has("h"), false);
+  assert.deepEqual(parsed.searchParams.get("p"), "80");
 });
 
 test("sumHistory totals price and hours", () => {

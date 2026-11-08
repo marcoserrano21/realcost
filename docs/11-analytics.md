@@ -18,15 +18,26 @@ The MVP needs a **swappable sink** — instrument now, connect PostHog/Plausible
 
 Events are written to `localStorage` key `realcost:analytics_queue` (max 200 events, FIFO trim). In development, events also log to console. In production, queue awaits future flush to external vendor.
 
-### Strip before store
+### Allowlist before store
 
-`track()` in `src/lib/analytics.ts` filters property keys matching:
+`sanitizeProps()` in `src/lib/analyticsProps.ts` runs inside `track()` and again in `src/app/api/analytics/route.ts`.
+
+For each event, only the keys in that event's allowlist are kept. Anything else is dropped, including `privacy`, `has_peer_hours`, and `has_hours`.
+
+Values:
+
+- booleans pass
+- strings pass when they are at most 40 characters and do not parse as a number
+- every number is dropped
+- a value equal to the current hourly wage (read from `getUnits()` in `track()`) is dropped
+
+The old key deny-list still applies:
 
 ```
 /wage|rate|email|name/i
 ```
 
-This runs **before** queue write — defense in depth even if a developer accidentally passes sensitive props.
+This runs **before** queue write.
 
 ### Custom event dispatch
 
@@ -44,23 +55,24 @@ Enables dev tools or future debug panels without coupling to vendor SDK.
 
 | Event | Fired when | Typical props (safe) |
 |-------|------------|----------------------|
-| `calculation_created` | Valid price entered and computed | `price_bucket` (optional future) |
-| `category_selected` | User taps category chip | `category` |
-| `decision_bought` | User logs Bought | — |
-| `decision_skipped` | User logs Skipped | — |
-| `decision_thinking` | User logs Thinking | — |
-| `share_started` | Share CTA tapped | `privacy`, `challenge` |
-| `share_completed` | Native share or clipboard success | `method`: `native` \| `clipboard`; `privacy`; `challenge` |
-| `share_image_started` | Save/share PNG started | `challenge`, `format`, `variant` |
-| `share_image_completed` | PNG export succeeded | `challenge`, `format`, `variant` |
-| `share_video_started` | Save/share video started | `challenge`, `format`, `variant` |
-| `share_video_completed` | Video export succeeded (or PNG fallback completed) | `challenge`, `format`, `variant` |
+| `calculation_created` | Valid price entered and computed | — |
+| `category_selected` | User taps category chip | `category`, `source` |
+| `decision_bought` / `decision_skipped` / `decision_thinking` | User logs a decision | `has_category` |
+| `share_started` | Share CTA tapped | `challenge`, `source` |
+| `share_completed` | Native share or clipboard success | `method`: `native` \| `clipboard`; `challenge` |
+| `share_image_started` | Save/share PNG started | `format`, `variant` |
+| `share_image_completed` | PNG export succeeded | `format`, `variant` |
+| `share_video_started` | Save/share video started | `format`, `variant` |
+| `share_video_completed` | Video export succeeded (or PNG fallback completed) | `format`, `variant` |
 | `comparison_opened` | Valid `/c` params loaded | — |
+| `comparison_updated` | Shared note saved | `role` |
 | `recipient_calculation_completed` | Recipient enters rate and sees result | — |
-| `recipient_shared` | Recipient shares their card | — |
-| `reaction_sent` | Recipient sends hours reply | — |
+| `recipient_shared` | Recipient shares onward | `method` |
+| `reaction_sent` | Recipient sends a price-only reply | — |
 | `reaction_received` | Sender applies matching reaction | — |
-| `onboarding_completed` | Setup flow finished | `tone`, `spending_focus` |
+| `onboarding_completed` | Setup flow finished | `tone`, `focus` |
+| `decision_updated` | History decision edited | `choice` |
+| `decision_deleted` | History decision deleted | `choice` |
 | `a2hs_prompt_shown` | Install cue shown | `ios`, `peak` (`share` \| `skipped` \| legacy) |
 | `a2hs_dismissed` | User dismisses install cue | — |
 | `a2hs_choice` | User accepts / interacts with install | `outcome` |
@@ -73,7 +85,7 @@ Enables dev tools or future debug panels without coupling to vendor SDK.
 | `email` | PII |
 | `name` | PII — even though name is local-only elsewhere |
 
-**Note:** Display name is local / on-card only. It is **not** tracked and **not** encoded in share URLs (legacy `n=` ignored). Safe boolean/string props like `privacy`, `challenge`, `format`, and `peak` are allowed.
+**Note:** Display name is local only. It is **not** tracked and **not** encoded in share URLs (legacy `n=` and `h=` ignored). Allowed props are the per-event list above. `privacy`, `has_peer_hours`, and `has_hours` are not allowed.
 
 ---
 
@@ -149,8 +161,8 @@ Call sites unchanged — only sink module edits.
 |----------|-----------|
 | No user IDs in MVP | No accounts = no stable identity |
 | Queue in localStorage | Matches zero-backend architecture |
-| Regex stripper vs allowlist | Stripper safer against developer error |
-| No price in analytics (currently) | Price could be sensitive — add bucketing later if needed |
+| Allowlist plus deny-list | Allowlist stops new keys. Deny-list and numeric drop stop wages hidden under another name |
+| No price or hours in analytics | A number next to another number can recover wage |
 | Custom DOM event | Debuggability without vendor lock-in |
 
 ---
@@ -205,6 +217,6 @@ Analytics audited in `08-security-privacy.md`:
 ## Portfolio Slide Summary
 
 **Problem:** Measure viral loop without collecting income data.  
-**Solution:** Local queue + regex property stripper + swappable sink.  
+**Solution:** Local queue + per-event allowlist + swappable sink.  
 **Funnel:** Calc → share → open → complete → re-share.  
 **Gate:** No vendor connection until stripper verified in QA.

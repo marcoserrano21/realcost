@@ -83,7 +83,7 @@ test("canExportShareVideo respects reduced motion and card type", () => {
       mimeType: "video/webm",
       variant: "standard",
     }),
-    true
+    false
   );
 });
 
