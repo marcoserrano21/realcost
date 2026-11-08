@@ -59,9 +59,9 @@ Agent note: this Next.js version differs from older training defaults — check 
 | **Formatting** | Duration, money, life-span gloss | `src/lib/calc.ts` (`formatHours`, `formatLifeSpan`) |
 | **Storage** | Units, log, comparisons, personalization, welcome, A2HS | `src/lib/storage.ts` |
 | **Sharing** | Encode/decode URL payloads; share copy. Price only | `src/lib/sharing.ts` |
-| **Share poster copy** | Price or hours, never both | `src/lib/sharePosterContent.ts` |
+| **Share poster copy** | Hours only. Never the price, so a poster cannot recover a wage | `src/lib/sharePosterContent.ts` |
 | **Share formats** | Poster 4:5 / Story 9:16 | `src/lib/shareFormats.ts` |
-| **Share image** | Canvas PNG (standard price poster, hoursKept) | `src/lib/shareImage.ts` |
+| **Share image** | Canvas PNG. Post, Story, and hours-kept are hours only | `src/lib/shareImage.ts` |
 | **Share video** | Recorder helpers. Export is off while posters have no hours reel | `src/lib/shareVideo.ts`, `shareVideoCore.ts` |
 | **Wage buckets** | Onboarding range midpoints → `hourlyWage` | `src/lib/wageBuckets.ts` |
 | **Native share** | `navigator.share` → clipboard; cancel ≠ success | `src/lib/nativeShare.ts` |

@@ -109,6 +109,8 @@ test("share URLs, copy, and posters cannot recover a wage", () => {
       const hasPrice = poster.priceLine != null;
       const hasHours = poster.hoursLine != null;
       assert.equal(hasPrice && hasHours, false, rendered);
+      assert.equal(rendered.includes(priceLabel), false, rendered);
+      assert.equal(rendered.includes(formattedHours), true, rendered);
     }
   }
 });

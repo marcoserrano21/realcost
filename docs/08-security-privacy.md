@@ -75,7 +75,7 @@ The product also encourages **sharing** — traditionally where privacy goes wro
 | Share encoding | `p` (+`s`, +`reply`) only. Never hours, wage, or name | `sharing.ts` |
 | Share decoding | No wage; legacy `h=` and `n=` ignored, then stripped from the URL | `sharing.ts`, `CompareClient.tsx` |
 | Analytics | Per-event allowlist. Numbers dropped. Values equal to the current wage dropped. Key deny-list kept | `analyticsProps.ts`, `analytics.ts`, `api/analytics/route.ts` |
-| Share card / poster | Price or hours, never both. No life-span gloss on the poster | `sharePosterContent.ts`, `ShareCard.tsx`, `shareImage.ts` |
+| Share card / poster | Hours only. The price stays on the link. No life-span gloss on the poster | `sharePosterContent.ts`, `ShareCard.tsx`, `shareImage.ts` |
 | Stale opt-in | `realcost:share_privacy` is removed on load | `storage.ts` |
 | Tests | Wage cannot be recovered from URL, copy, poster, or OG | `wage-leak.test.ts`, `calc-sharing.test.ts` |
 
@@ -104,7 +104,7 @@ Shared URL contains:
 
 **Not in URLs:** wage, hours, display name. Legacy `h=` and `n=` are ignored by `decodeComparison` and removed with `router.replace`.
 
-**Residual:** price alone is intentional share content. Hours stay on each device. A share image follows the same rule: the standard poster shows the price, the hours-kept poster shows hours, and neither shows both.
+**Residual:** a link carries the price and no hours. A poster carries the hours and no price. Neither artifact shows both, so a wage cannot be recovered from one of them.
 
 **Not accepted:** Encoding wage, or encoding any pair that divides back to wage.
 
@@ -138,7 +138,7 @@ Privacy features that **enable** the hypothesis, not just protect users.
 | **S-03** | Reset onboarding without history wipe | Shared devices, rate experiments | ✅ `resetOnboarding()` |
 | **S-04** | Full reset with confirmation | GDPR-adjacent user control (delete my data) | ✅ `clearAllData()` |
 | **S-05** | No account email collection | Eliminates #1 PII leak vector | ✅ By design |
-| **S-06** | Price-only or hours-only share card | Screenshot of a poster cannot recover wage | ✅ ShareCard + `sharePosterContent` |
+| **S-06** | Hours-only share card | Screenshot of a poster cannot recover wage | ✅ ShareCard + `sharePosterContent` |
 | **S-07** | Dev-only analytics console | Validate funnel without sending PII to vendor | ✅ `NODE_ENV !== 'production'` |
 | **S-08** | Swappable analytics sink | Add PostHog later without wage in call sites | ✅ Queue abstraction |
 

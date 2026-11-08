@@ -8,7 +8,7 @@ import { aspectClassForFormat, type ShareCardFormat } from "@/lib/shareFormats";
 import { sharePosterContent } from "@/lib/sharePosterContent";
 import { track } from "@/lib/analytics";
 
-/** Share poster. Standard cards show the price. Hours-kept cards show hours. Never both. */
+/** Share poster. Post and Story show the hours. The price stays on the link. Never both. */
 export default function ShareCard({
   price = 0,
   hours = 0,
