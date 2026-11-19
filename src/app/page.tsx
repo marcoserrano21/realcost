@@ -216,15 +216,6 @@ export default function Home() {
     const shareId = newShareId();
     track("share_started", { challenge: asChallenge });
     const shareUrl = encodeComparison(window.location.origin, { price: priceNum }, { shareId });
-
-    addComparisonEntry({
-      price: priceNum,
-      hours: liveResult.hours,
-      role: "sent",
-      shareId,
-      timestamp,
-    });
-
     const text = shareText(formatMoney(priceNum), { challenge: asChallenge });
 
     const result = await shareLink({
@@ -232,6 +223,17 @@ export default function Home() {
       text,
       url: shareUrl,
     });
+    // Only log the share once it actually went out. A cancelled share sheet
+    // used to leave a phantom "sent" entry that sat in Shared as Waiting.
+    if (result === "shared" || result === "copied") {
+      addComparisonEntry({
+        price: priceNum,
+        hours: liveResult.hours,
+        role: "sent",
+        shareId,
+        timestamp,
+      });
+    }
     if (result === "shared") {
       track("share_completed", { method: "native", challenge: asChallenge });
       triggerHaptic([10, 40, 14]);

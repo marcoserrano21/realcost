@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RealCost
 
-## Getting Started
+Turns a price into what it actually costs you: hours of your work, shifts, dinners. Then asks, "what does it cost someone else?"
 
-First, run the development server:
+Live: https://realcost-xi.vercel.app
+
+## The bet
+
+The price-to-hours mechanic is common. What nobody has shipped is person-to-person comparison: "Same price, different life." Share a price, a friend opens the link, enters their own wage on their device, and sees the side-by-side. That loop is the whole experiment.
+
+## Privacy
+
+There is no backend, no database, no accounts. Your wage lives in `localStorage` on your device and never leaves it. Share links carry only the price, never a wage.
+
+## Stack
+
+Next.js 16 (App Router) + TypeScript + Tailwind. Deployed on the Vercel free tier. $0/mo to run.
+
+## Run it
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Node 22+ required. `npm test` runs the unit tests, `npm run build` is the production build.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Docs
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `SPEC.md` — the locked v1 scope, what shipped, what was deliberately deferred, and the metric that matters (share → opened → recipient completes → recipient shares).
+- `docs/` — architecture, design system, branding, marketing, roadmap, changelog, UI/UX notes.

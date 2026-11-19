@@ -11,7 +11,7 @@ import {
   US_MEDIAN_HOURLY_WAGE,
 } from "@/lib/calc";
 import { clampWage } from "@/lib/limits";
-import { addComparisonEntry, applyShareReaction, setUnits, setName } from "@/lib/storage";
+import { addComparisonEntry, applyShareReaction, setName } from "@/lib/storage";
 import { useComparisonLog, usePersonalization } from "@/lib/useLocalData";
 import { getCompareIntroCopy, getCompareRevealCopy } from "@/lib/copy";
 import { decodeComparison, encodeComparison, shareText } from "@/lib/sharing";
@@ -73,22 +73,16 @@ export default function CompareClient() {
     ? computeRealCost(price, { hourlyWage: wageNum, shiftHours: 8, dinnerCost: 25 })
     : null;
 
-  useEffect(() => {
-    if (!revealed || !(wageNum > 0)) return;
-    const safeWage = clampWage(wageNum);
-    if (!(safeWage > 0)) return;
-    setUnits({ hourlyWage: safeWage, shiftHours: 8, dinnerCost: 25 });
-    window.dispatchEvent(new Event("realcost:units-updated"));
-  }, [revealed, wageNum]);
-
   const onWageChange = (raw: string) => setWage(sanitizeDecimalInput(raw));
 
   const handleReveal = (timestamp: number) => {
     if (!myResult) return;
     const safeWage = clampWage(wageNum);
     if (!(safeWage > 0)) return;
-    setUnits({ hourlyWage: safeWage, shiftHours: 8, dinnerCost: 25 });
-    if (myName) setName(myName);
+    // The visitor's rate stays local: it is recorded as myRate on the
+    // comparison entry below. Never write it to realcost:units — that key
+    // belongs to this device's owner, and overwriting it would silently
+    // replace their saved wage and settings.
     addComparisonEntry({
       price,
       hours: myResult.hours,
@@ -269,6 +263,10 @@ export default function CompareClient() {
                     placeholder="Your name (optional, on-device)"
                     value={myName}
                     onChange={(e) => setMyName(e.target.value)}
+                    onBlur={() => {
+                      const trimmed = myName.trim();
+                      if (trimmed) setName(trimmed);
+                    }}
                     className="caption-field"
                   />
                 </div>
