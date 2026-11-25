@@ -421,14 +421,11 @@ export function resetOnboarding() {
 /** Wipes every locally stored key. Used by the settings "reset" action. */
 export function clearAllData() {
   if (typeof window === "undefined") return;
-  [
-    UNITS_KEY,
-    LOG_KEY,
-    NAME_KEY,
-    PERSONALIZATION_KEY,
-    COMPARISON_LOG_KEY,
-    WELCOME_SEEN_KEY,
-    LEGACY_SHARE_PRIVACY_KEY,
-  ].forEach((key) => window.localStorage.removeItem(key));
+  // Sweep every realcost: key (units, log, name, personalization, comparisons,
+  // welcome, A2HS, theme, motion, analytics queue, reaction honesty) so a reset
+  // is a real clean slate and no key can be left behind by a future addition.
+  Object.keys(window.localStorage)
+    .filter((key) => key.startsWith("realcost:"))
+    .forEach((key) => window.localStorage.removeItem(key));
   notifyClientStore();
 }
